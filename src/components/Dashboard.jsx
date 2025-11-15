@@ -1,10 +1,8 @@
 import { useState } from 'react'
-import ClerkUserInfo from './ClerkUserInfo'
+import Navbar from './Navbar'
 import './Dashboard.css'
 
 function Dashboard() {
-  // Check for Clerk key with both naming conventions
-  const hasClerkKey = !!(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || import.meta.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)
   const [predictionData, setPredictionData] = useState({
     location: '',
     waterSource: 'tap',
@@ -72,17 +70,12 @@ function Dashboard() {
   }
 
   return (
-    <div className="dashboard">
-      <header className="dashboard-header">
+    <>
+      <Navbar />
+      <div className="dashboard">
+        <header className="dashboard-header">
         <div className="header-content">
           <h1 className="dashboard-title">AWARE Dashboard</h1>
-          <div className="header-actions">
-            {hasClerkKey ? (
-              <ClerkUserInfo />
-            ) : (
-              <span className="user-greeting">Welcome to AWARE Dashboard</span>
-            )}
-          </div>
         </div>
       </header>
 
@@ -272,9 +265,40 @@ function Dashboard() {
               </div>
             </div>
           </div>
+
+          {/* Water Quality Images Gallery */}
+          <div className="dashboard-card images-card">
+            <h2 className="card-title">Water Quality Examples</h2>
+            <div className="images-grid">
+              <div className="image-item">
+                <img 
+                  src="/drinking_water.jpg" 
+                  alt="Clean drinking water" 
+                  className="water-image"
+                />
+                <div className="image-label">Safe Drinking Water</div>
+              </div>
+              <div className="image-item">
+                <img 
+                  src="/lake_water.avif" 
+                  alt="Lake water source" 
+                  className="water-image"
+                />
+                <div className="image-label">Lake Water Source</div>
+              </div>
+              <div className="image-item">
+                <img 
+                  src="/water_bad.jpg" 
+                  alt="Contaminated water" 
+                  className="water-image"
+                />
+                <div className="image-label">Contaminated Water</div>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
-    </div>
+      </div>
     </>
   )
 }

@@ -12,6 +12,20 @@ function Navbar() {
   const menuRef = useRef(null)
   const menuItemsRef = useRef([])
   const { user } = useUser()
+  const userButtonRef = useRef(null)
+
+  const handleUserButtonClick = (e) => {
+    // Prevent double-clicking if clicking directly on UserButton
+    if (e.target.closest('[data-clerk-element="userButton"]')) {
+      return
+    }
+    // Find and click the UserButton trigger inside
+    const userButton = userButtonRef.current?.querySelector('button')
+    if (userButton) {
+      e.preventDefault()
+      userButton.click()
+    }
+  }
 
   const toggleDropdown = () => {
     setIsDropdownOpen(prev => !prev)
@@ -162,22 +176,30 @@ function Navbar() {
         
         <div className="navbar-right">
           <SignedIn>
-            <div className="navbar-user-info">
-              <Link 
-                to="/dashboard" 
-                className="navbar-user-link"
-                onClick={closeDropdown}
-              >
+            <button 
+              className="navbar-user-button"
+              onClick={handleUserButtonClick}
+              type="button"
+              aria-label="User menu"
+            >
+              <span className="navbar-user-name">
                 {user?.firstName || user?.emailAddresses[0]?.emailAddress}
-              </Link>
-              <UserButton afterSignOutUrl="/" />
-            </div>
+              </span>
+              <span ref={userButtonRef}>
+                <UserButton afterSignOutUrl="/" />
+              </span>
+            </button>
           </SignedIn>
           
           <SignedOut>
             <SignInButton mode="modal">
-              <button className="navbar-sign-in-button">
-                Sign In
+              <button 
+                className="navbar-user-button"
+                type="button"
+                aria-label="Sign in"
+              >
+                <span className="navbar-user-name">Sign In</span>
+                <span className="navbar-user-icon">👤</span>
               </button>
             </SignInButton>
           </SignedOut>
