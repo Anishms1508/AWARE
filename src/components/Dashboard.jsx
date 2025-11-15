@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import Navbar from './Navbar'
+import ClerkUserInfo from './ClerkUserInfo'
 import './Dashboard.css'
 
 function Dashboard() {
+  // Check for Clerk key with both naming conventions
+  const hasClerkKey = !!(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || import.meta.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)
   const [predictionData, setPredictionData] = useState({
     location: '',
     waterSource: 'tap',
@@ -70,9 +72,20 @@ function Dashboard() {
   }
 
   return (
-    <>
-      <Navbar />
-      <div className="dashboard">
+    <div className="dashboard">
+      <header className="dashboard-header">
+        <div className="header-content">
+          <h1 className="dashboard-title">AWARE Dashboard</h1>
+          <div className="header-actions">
+            {hasClerkKey ? (
+              <ClerkUserInfo />
+            ) : (
+              <span className="user-greeting">Welcome to AWARE Dashboard</span>
+            )}
+          </div>
+        </div>
+      </header>
+
       <main className="dashboard-main">
         <div className="dashboard-grid">
           {/* Prediction Form */}

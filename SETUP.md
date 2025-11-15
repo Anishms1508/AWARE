@@ -27,15 +27,18 @@ This will install all dependencies listed in `package.json`.
 
 ## Step 2: Set Up Environment Variables
 
-1. Copy the example environment file:
-   ```bash
-   cp .env.example .env
-   ```
+1. Create a `.env.local` file in the root directory (or use `.env`)
 
-2. Edit `.env` and add your Clerk Publishable Key:
+2. Add your Clerk keys:
    ```
    VITE_CLERK_PUBLISHABLE_KEY=pk_test_your_key_here
+   CLERK_SECRET_KEY=sk_test_your_secret_key_here
    ```
+
+   **Important:** 
+   - Vite requires the `VITE_` prefix for environment variables to be exposed to the client
+   - Use `.env.local` for local development (it's gitignored)
+   - `CLERK_SECRET_KEY` is only needed for server-side operations (not used in this frontend app)
 
 ## Step 3: Get Your Clerk Key
 

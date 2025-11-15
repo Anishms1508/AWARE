@@ -63,15 +63,18 @@ cd AWARE
    - Enable Google OAuth provider
    - Copy your Publishable Key
 
-4. Create environment file:
+4. Create environment file (`.env.local` or `.env`):
 ```bash
-cp .env.example .env
+# Create .env.local file
 ```
 
-5. Add your Clerk Publishable Key to `.env`:
+5. Add your Clerk keys to `.env.local`:
 ```
 VITE_CLERK_PUBLISHABLE_KEY=pk_test_your_actual_key_here
+CLERK_SECRET_KEY=sk_test_your_secret_key_here
 ```
+
+   **Note:** Vite requires the `VITE_` prefix for environment variables. The `CLERK_SECRET_KEY` is optional for frontend-only apps.
 
 6. Configure Clerk Redirect URLs:
    - In your Clerk dashboard, go to "Paths"
