@@ -1,0 +1,33 @@
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+"Station 
+Code",Monitoring Location,State Name,"Temperature 
+(°C)",,"Dissolved 
+Oxygen 
+(mg/L)",,pH,,"Conductivity 
+(µmho/cm)",,"BOD 
+(mg/L)",,"Nitrate N 
+(mg/L)",,"Fecal Coliform  
+(MPN/100ml)",,"Total Coliform  
+(MPN/100ml)",,"Fecal 
+Streptococci 
+(MPN/100ml)",
+,,,Min,,Max  Min  Max  Min Max  Min,,,,,,Max  Min  Max  Min  Max,,,,"Min 
+Max",,"Min 
+Max",,"Min 
+Max",
+"Primary Water Quality Criteria notified under The E (P) Rules, 1986",,,,,"> 5.0 
+mg/L",,6.5 - 8.5,,,,"< 3.0 
+mg/L",,,,"< 2500 MPN/ 100 
+Ml",,,,"< 500 MPN/ 
+100 Ml",
+1463,"RIVER NIRA  AT SAROLA BRIDGE, VILLAGE- SAROLA, 
+TALUKA-BHOR, DISTRICT- PUNE.",MAHARASHTRA  27.0,,30.0,4.9,6.5,,7.7  8.5,128,,1577  2.2,7.2,0.30,3.48,7,65,115,425,2,14
+2683,"RIVER NIRA  AT SHINDEWADI,  VILLAGE- SHIRVAL, 
+TALUKA- KHANDALA, DISTRICT- SATARA.",MAHARASHTRA  25.0,,30.0,5.4,6.4,,7.3  8.6,75,264,3.0,4.5,0.30,2.05,7,25,75,250,2,9
+2682,"RIVER NIRA AT U/S OF JUBILANT ORGANOSIS, VILLAGE- 
+NIRA (DATTAGHAT),TALUKA- BARAMATI, DISTRICT- 
+PUNE.",MAHARASHTRA  26.0,,30.0,5.3,6.2,,7.9  8.5,483,944,3.0,6.2,0.30,3.38,7,65,120,275,2,13
+2195,"RIVER NIRA AT D/S OF JUBILANT ORGANOSIS,  VILLAGE- 
+NIMBUT, TALUKA- BARAMATI, DISTRICT- PUNE.",MAHARASHTRA  26.0,,30.0,4.9,5.8,,7.3  8.4,621,,1273  3.8,7.5,0.30,4.88,7,120,150,900,2,25
+2681,"RIVER NIRA AT SANGAVI, VILLAGE- SANGAVI, TALUKA- 
+PHALTAN, DISTRICT- SATARA.",MAHARASHTRA  25.0,,32.0,4.3,5.6,,8.0  8.4,1567,,6941  4.4  14.0  0.30,,,2.54,9,110,130,550,4,25

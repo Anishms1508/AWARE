@@ -1,0 +1,26 @@
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+"Station 
+Code",Monitoring Location,State Name,"Temperature 
+(°C)",,"Dissolved 
+Oxygen 
+(mg/L)",,pH,,"Conductivity 
+(µmho/cm)",,"BOD 
+(mg/L)",,"Nitrate N 
+(mg/L)",,"Fecal Coliform  
+(MPN/100ml)",,"Total Coliform  
+(MPN/100ml)",,"Fecal 
+Streptococci 
+(MPN/100ml)",
+,,,Min,,Max  Min  Max  Min Max  Min,,,,,,Max  Min  Max  Min  Max,,,,"Min 
+Max",,"Min 
+Max",,"Min 
+Max",
+"Primary Water Quality Criteria notified under The E (P) Rules, 1986",,,,,"> 5.0 
+mg/L",,6.5 - 8.5,,,,"< 3.0 
+mg/L",,,,"< 2500 MPN/ 100 
+Ml",,,,"< 500 MPN/ 
+100 Ml",
+1198,RIVER CAUVERY AT NAPOKULU BDG (D/S),KARNATAKA,17.0,26.0,6.3,7.7,,7.0  8.7,48,170,1.0,2.5,0.30,1.00,17,43,210,350,,
+1195,"RIVER CAUVERY AT KUSHAL NAGAR U/S (NEAR 
+BAICHANAHALLI)",KARNATAKA,18.0,27.0,6.2,7.7,,7.2  8.6,63,326,1.0,3.0,0.30,1.90,32,78,240,630,,
+33,"RIVER CAUVERY AT KRS DAM, BALAMURIKSHETRA",KARNATAKA,19.0,28.0,6.1,7.0,,7.0  8.6,143,489,1.0,4.0,0.78,3.40,83,170,940,1300,,

@@ -1,0 +1,35 @@
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+"Station 
+Code",Monitoring Location,State Name,"Temperature 
+(°C)",,"Dissolved 
+Oxygen 
+(mg/L)",,pH,,"Conductivity 
+(µmho/cm)",,"BOD 
+(mg/L)",,"Nitrate N 
+(mg/L)",,"Fecal Coliform  
+(MPN/100ml)",,"Total Coliform  
+(MPN/100ml)",,"Fecal 
+Streptococci 
+(MPN/100ml)",
+,,,Min,,Max  Min  Max  Min Max  Min,,,,,,Max  Min  Max  Min  Max,,,,"Min 
+Max",,"Min 
+Max",,"Min 
+Max",
+"Primary Water Quality Criteria notified under The E (P) Rules, 1986",,,,,"> 5.0 
+mg/L",,6.5 - 8.5,,,,"< 3.0 
+mg/L",,,,"< 2500 MPN/ 100 
+Ml",,,,"< 500 MPN/ 
+100 Ml",
+1499,"RIVER YAMUNA AT JUHIKA B/C WITH CHANBAL, 
+ETAWAH, U.P","UTTAR 
+PRADESH",18.6,37.9,6.2,7.4,,7.5  7.8,407,,2532  6.4  16.0  0.00,,,0.00,4100,27000,13000,70000,,
+30034,RIVER YAMUNA AT ETAWAH,"UTTAR 
+PRADESH",18.0,32.0,6.2,9.3,,7.2  8.8,602,,1633  3.9  15.7  3.09  21.93,,,,2,79000,4500,240000,,
+30033,"RIVER YAMUNA A/C OF CHAMBAL AT SHERGARH, 
+JUHIKA (U.P)","UTTAR 
+PRADESH",18.0,31.0,7.1,9.0,,7.3  8.9,447,,1091  2.1,8.1,0.32,5.89,2,33000,2,490000,2,2
+2283,RIVER YAMUNA AT HAMIRPUR,"UTTAR 
+PRADESH",17.0,28.0,4.9,7.1,,7.4  7.8,659,848,2.6,5.2,0.00,0.00,9300,23000,17000,79000,,
+1069,"RIVER  YAMUNA  AT PRAYAGRAJ D/S (BALUA GHAT), 
+U.P.","UTTAR 
+PRADESH",20.7,30.7,6.8,8.4,,7.7  8.3,318,397,2.5,2.7,0.55,0.68,400,680,1400,1700,,

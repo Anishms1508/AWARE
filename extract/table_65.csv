@@ -1,0 +1,33 @@
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+"Station 
+Code",Monitoring Location,State Name,"Temperature 
+(°C)",,"Dissolved 
+Oxygen 
+(mg/L)",,pH,,"Conductivity 
+(µmho/cm)",,"BOD 
+(mg/L)",,"Nitrate N 
+(mg/L)",,"Fecal Coliform  
+(MPN/100ml)",,"Total Coliform  
+(MPN/100ml)",,"Fecal 
+Streptococci 
+(MPN/100ml)",
+,,,Min,,Max  Min  Max  Min Max  Min,,,,,,Max  Min  Max  Min  Max,,,,"Min 
+Max",,"Min 
+Max",,"Min 
+Max",
+"Primary Water Quality Criteria notified under The E (P) Rules, 1986",,,,,"> 5.0 
+mg/L",,6.5 - 8.5,,,,"< 3.0 
+mg/L",,,,"< 2500 MPN/ 100 
+Ml",,,,"< 500 MPN/ 
+100 Ml",
+3888,"RIVER MAHANADI AT POWER CHANNEL U/S NEAR 
+BURLA",ODISHA,23.0,30.0,6.0,7.8,,7.1  8.0,162,246,1.1,2.0,0.32,0.77,23,1300,79,3300,,
+3890,"RIVER MAHANADI AT CUTTACK FD/S AT 
+GATIRAUTAPATNA",ODISHA,20.0,32.0,6.4,8.5,,7.1  8.4,167,248,1.5,2.0,0.32,0.95,330,13000,1700,54000,5,130
+2407,"RIVER MAHANADI AT PARADEEP U/S (BEFORE 
+INDUSTRIAL ACTIVITY AT PARADEEP)",ODISHA,24.5,33.4,6.0,8.6,,7.2  8.2,158,22980  1.1,,1.4,0.32,0.88,2,1300,2,3300,2,33
+1639,RIVER MAHANADI AT PARADEEP D/S,ODISHA,24.4,33.0,5.4,8.4,,7.1  8.4,210,35410  1.4,,2.2,0.32,2.48,2,1700,2,4900,2,49
+4990,MAHANADI MUHANA NORTH (5 KM FROM SHORE),ODISHA,28.0,31.0,5.9,7.0,,7.5  8.0,,,1.0,1.0,0.00,0.00,2,23,,,,
+4991,MAHANADI MUHANA SOUTH (5 KM FROM SHORE),ODISHA,28.9,30.8,6.6,7.2,,7.7  8.3,,,1.0,1.0,0.00,0.00,2,79,,,,
+4992,MAHANADI MUHANA / ESTUARY,ODISHA,23.3,30.4,6.2,7.3,,8.0  8.1,,,1.0,1.0,0.00,0.00,2,14,,,,
+4994,MAHANADI MUHANA (5 KM FROM SHORE),ODISHA,23.9,31.9,5.8,6.4,,7.6  8.0,,,1.0,1.0,0.00,0.00,33,170,,,,

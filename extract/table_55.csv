@@ -1,0 +1,40 @@
+0,1,2,3,4,5,6,7,8,9,10,11
+"STN 
+Code",Monitoring Location,State Name,"Temperature 
+(°C)","Dissolved 
+Oxygen 
+(mg/L)",pH,"Conductivity 
+(µmho/cm)","BOD 
+(mg/L)","NitrateN 
+(mg/L)","Fecal Coliform  
+(MPN/100ml)","Total Coliform  
+(MPN/100ml)","Fecal 
+Streptococci 
+(MPN/100ml)"
+,,,Min,Max  Min  Max  Min Max  Min,,,Max  Min  Max  Min  Max,,"Min 
+Max","Min 
+Max","Min 
+Max"
+"Primary Water Quality Criteria notified under The E (P) Rules, 1986",,,,"> 5.0 
+mg/L",6.5 - 8.5,,"< 3.0 
+mg/L",,"< 2500 MPN/ 100 
+Ml",,"< 500 MPN/ 
+100 Ml"
+"1222 
+RIVER SHEDHI AT KHEDA, 
+GUJARAT",,,"28.0 
+35.0","4.5 
+7.2",7.7  8.5,"460 
+2616  1.0",2.7,"1.12 
+7.94","50 
+1600","300 
+1600","2 
+540"
+"1437 
+RIVER KHARI AT LALI VILLAGE NEAR AHMEDABAD, 
+GUJARAT",,,"28.0 
+30.0","0.3 
+1.5",7.2  7.5,1112,2558  11.0  68.0  0.33,1.05,"1600 
+1600","1600 
+1600","1600 
+1600"

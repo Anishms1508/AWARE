@@ -1,0 +1,31 @@
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+"Station 
+Code",Monitoring Location,State Name,"Temperature 
+(°C)",,"Dissolved 
+Oxygen 
+(mg/L)",,pH,,"Conductivity 
+(µmho/cm)",,"BOD 
+(mg/L)",,"Nitrate N 
+(mg/L)",,"Fecal Coliform  
+(MPN/100ml)",,"Total Coliform  
+(MPN/100ml)",,"Fecal 
+Streptococci 
+(MPN/100ml)",
+,,,Min,,Max  Min  Max  Min Max  Min,,,,,,Max  Min  Max  Min  Max,,,,"Min 
+Max",,"Min 
+Max",,"Min 
+Max",
+"Primary Water Quality Criteria notified under The E (P) Rules, 1986",,,,,"> 5.0 
+mg/L",,6.5 - 8.5,,,,"< 3.0 
+mg/L",,,,"< 2500 MPN/ 100 
+Ml",,,,"< 500 MPN/ 
+100 Ml",
+3103,"RIVER PACHIN AT NAHARLAGUN (BELOW BARAPANI 
+BRIDGE), (D/S OF RIVER SENKI)","ARUNACHAL 
+PRADESH",21.6,34.2,6.0,9.2,,7.1  7.9,67,193,1.0,2.8,0.00,0.00,,,,,,
+2065,"RIVER PAGLDIA NEAR NALBARI TOWN, DIST. NALBARI, 
+ASSAM",ASSAM,22.0,33.0,5.8,8.1,,7.0  8.0,142,230,2.0,2.8,0.60,1.80,610,1500,1100,2100,210,490
+2235,"RIVER PANCHNOI AT NH-52 CROSSING, ORANG, ASSAM",ASSAM,16.0,28.0,5.0,6.2,,6.8  7.2,102,144,2.2,2.7,0.80,1.70,620,940,1300,2100,210,290
+1531,"RIVER MORA BHARALI AT TEZPUR, ASSAM",ASSAM,19.0,30.0,3.8,5.4,,6.9  7.4,148,242,3.0,3.3,0.90,2.00,360,940,1100,2000,120,290
+1929,"RIVER CHATHE NEAR ICAR, MEDZIPHEMA",NAGALAND,17.2,31.4,6.6,8.0,,6.5  8.9,85,232,1.2,1.8,0.40,1.80,,,,,,
+1930,RIVER DZU AT DZU BRIDGE,NAGALAND,20.4,32.2,6.1,8.6,,6.6  8.6,95,760,1.4,2.0,0.50,2.10,,,,,,

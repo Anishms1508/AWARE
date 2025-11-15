@@ -1,0 +1,38 @@
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+"Station 
+Code",Monitoring Location,State Name,"Temperature 
+(°C)",,"Dissolved 
+Oxygen 
+(mg/L)",,pH,,"Conductivity 
+(µmho/cm)",,"BOD 
+(mg/L)",,"Nitrate N 
+(mg/L)",,"Fecal Coliform  
+(MPN/100ml)",,"Total Coliform  
+(MPN/100ml)",,"Fecal 
+Streptococci 
+(MPN/100ml)",
+,,,Min,,Max  Min  Max  Min Max  Min,,,,,,Max  Min  Max  Min  Max,,,,"Min 
+Max",,"Min 
+Max",,"Min 
+Max",
+"Primary Water Quality Criteria notified under The E (P) Rules, 1986",,,,,"> 5.0 
+mg/L",,6.5 - 8.5,,,,"< 3.0 
+mg/L",,,,"< 2500 MPN/ 100 
+Ml",,,,"< 500 MPN/ 
+100 Ml",
+1255,"RIVER PENNAR B/C WITH CHITRAVATHI, TADIPATRI (M), 
+VENGANUR (V)","ANDHRA 
+PRADESH",23.0,34.0,5.3,5.9,,7.3  8.0,683,,1263  1.2,2.8,0.61,1.61,203,613,816,1553,,
+1256,"RIVER PENNAR A/C WITH PAPAGNI, PUSHPAGIRI 
+(V),VALLUR (M)","ANDHRA 
+PRADESH",22.0,28.0,5.5,6.2,,7.3  8.1,806,,1298  1.0,2.5,0.69,1.43,185,395,575,1300,,
+1257,"RIVER PENNAR A/C WITH CHEYYURU, SOMASILA (V), 
+ANANTHASAGARAM (M)","ANDHRA 
+PRADESH",17.0,20.0,6.8,8.3,,7.5  8.2,728,,1080  2.6,2.8,0.54,1.46,3,14,64,470,2,3
+30,RIVER PENNAR AT SIDDAVATAM (V & M),"ANDHRA 
+PRADESH",20.0,28.0,5.0,6.4,,6.6  7.7,835,,1451  1.0,2.7,0.38,1.70,151,381,575,1049,,
+2351,"RIVER KUNDU, NANDYAL, NEAR OVER BDG.,NANDYAL 
+TOWN","ANDHRA 
+PRADESH",15.0,29.0,3.4,5.9,,6.9  7.7,876,,1310  2.2,3.6,0.75,2.38,235,649,770,1986,,
+1689,"CHUNNAMBAR RIVER, KILINJIKUPPAM ROAD, 
+NONANKUPPAM, PUDUCHERRY.",PUDUCHERRY,29.0,35.0,,6.3  13.7  8.1  9.4,,,856,,1605  2.0,9.0,0.00,0.32,2,1600,170,1600,2,280

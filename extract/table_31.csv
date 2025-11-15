@@ -1,0 +1,31 @@
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+"Station 
+Code",Monitoring Location,State Name,"Temperature 
+(°C)",,"Dissolved 
+Oxygen 
+(mg/L)",,pH,,"Conductivity 
+(µmho/cm)",,"BOD 
+(mg/L)",,"Nitrate N 
+(mg/L)",,"Fecal Coliform  
+(MPN/100ml)",,"Total Coliform  
+(MPN/100ml)",,"Fecal 
+Streptococci 
+(MPN/100ml)",
+,,,Min,,Max  Min  Max  Min Max  Min,,,,,,Max  Min  Max  Min  Max,,,,"Min 
+Max",,"Min 
+Max",,"Min 
+Max",
+"Primary Water Quality Criteria notified under The E (P) Rules, 1986",,,,,"> 5.0 
+mg/L",,6.5 - 8.5,,,,"< 3.0 
+mg/L",,,,"< 2500 MPN/ 100 
+Ml",,,,"< 500 MPN/ 
+100 Ml",
+3125,"RIVER GANDAK GOPALGANJ PIPRAKOTHI ROAD BRIDGE 
+(DUMARIA GHAT)",BIHAR,18.0,31.0,7.1,9.8,,7.3  8.2,166,308,1.0,2.1,0.30,0.30,2200,92000,7000,160000,,
+2568,"RIVER GANDAK AT REWAGHAT, MUZAFFARPUR",BIHAR,18.0,31.0,6.6,9.5,,7.3  8.2,175,309,1.0,2.7,0.30,0.30,2300,54000,3300,92000,,
+10163,"RIVER GANDAK AT ROAD BRIDGE, U/S HAJIPUR, 
+VAISHALI (BORDER OF SARAN & VAISHALI)",BIHAR,18.0,30.0,7.1,9.4,,7.2  8.2,173,272,1.0,2.4,0.30,0.30,1400,54000,2700,160000,,
+10126,"RIVER GANDAK AT KONHARA GHAT, OPPOSITE 
+HARIHARNATH MANDIR,SONEPUR",BIHAR,17.0,30.0,7.1,8.9,,7.2  8.2,170,268,1.1,2.4,0.30,0.30,1300,92000,3300,160000,,
+1078,"RIVER GANDAK  AT SONEPUR NEAR HARIHARNATH 
+TEMPLE",BIHAR,17.0,31.0,6.6,9.1,,7.2  8.3,167,264,1.0,2.6,0.30,0.30,3300,92000,4600,160000,,

@@ -1,0 +1,32 @@
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+"Station 
+Code",Monitoring Location,State Name,"Temperature 
+(°C)",,"Dissolved 
+Oxygen 
+(mg/L)",,pH,,"Conductivity 
+(µmho/cm)",,"BOD 
+(mg/L)",,"Nitrate N 
+(mg/L)",,"Fecal Coliform  
+(MPN/100ml)",,"Total Coliform  
+(MPN/100ml)",,"Fecal 
+Streptococci 
+(MPN/100ml)",
+,,,Min,,Max  Min  Max  Min Max  Min,,,,,,Max  Min  Max  Min  Max,,,,"Min 
+Max",,"Min 
+Max",,"Min 
+Max",
+"Primary Water Quality Criteria notified under The E (P) Rules, 1986",,,,,"> 5.0 
+mg/L",,6.5 - 8.5,,,,"< 3.0 
+mg/L",,,,"< 2500 MPN/ 100 
+Ml",,,,"< 500 MPN/ 
+100 Ml",
+,"1107  RIVER SEONATH AT U/S RAJNANDGAON, CHHATISGARH. CHHATTISGARH  2.6",,,29.0,6.8,7.4,,7.3  7.6,142,492,1.2,2.8,0.32,0.80,,,64,1100,,
+1266,RIVER SEONATH AT SHIMGA NEAR ROAD BRIDGE,CHHATTISGARH  19.0,,29.0,6.5,7.2,,7.2  7.9,220,574,2.1,2.6,0.00,0.00,,,50,70,,
+1845,"RIVER SEONATH WATER SUPPLY WELL, DURG, 
+CHHATISGARH.",CHHATTISGARH  2.6,,29.0,6.4,7.6,,7.4  7.6,189,498,1.2,2.4,0.00,0.80,,,9,1100,,
+3166,"RIVER SEONATH AT JHINGHRI VILLAGE, A/C OF SAMODA 
+NALLA, CHHATISGARH.",CHHATTISGARH  24.0,,29.0,2.2,7.2,,7.2  7.9,419,518,,2.0  28.0  0.48,,1.05,560,560,240,1100,,
+3167,"RIVER SEONATH  AT MOHAD, RAJNANDGAON",CHHATTISGARH  2.6,,29.0,6.8,7.4,,7.3  7.6,94,504,1.4,2.8,0.32,1.10,,,93,1100,,
+2403,RIVER BHEDEN BEFORE CONFLUENCE WITH IB RIVER,ODISHA,19.0,32.0,7.6,8.4,,6.8  8.5,125,795,1.3,1.7,0.32,1.20,45,1300,170,3300,2,27
+1265,"RIVER KHAROON AT BHATAGAON  NEAR WATER 
+SUPPLY INTAKEWELL RAIPUR",CHHATTISGARH  20.0,,29.0,6.4,7.3,,7.1  8.2,190,,2020  2.1,2.5,0.00,0.00,,,34,60,,

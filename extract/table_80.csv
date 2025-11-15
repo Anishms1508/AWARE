@@ -1,0 +1,33 @@
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+"Station 
+Code",Monitoring Location,State Name,"Temperature 
+(°C)",,"Dissolved 
+Oxygen 
+(mg/L)",,pH,,"Conductivity 
+(µmho/cm)",,"BOD 
+(mg/L)",,"Nitrate N 
+(mg/L)",,"Fecal Coliform  
+(MPN/100ml)",,"Total Coliform  
+(MPN/100ml)",,"Fecal 
+Streptococci 
+(MPN/100ml)",
+,,,Min,,Max  Min  Max  Min Max  Min,,,,,,Max  Min  Max  Min  Max,,,,"Min 
+Max",,"Min 
+Max",,"Min 
+Max",
+"Primary Water Quality Criteria notified under The E (P) Rules, 1986",,,,,"> 5.0 
+mg/L",,6.5 - 8.5,,,,"< 3.0 
+mg/L",,,,"< 2500 MPN/ 100 
+Ml",,,,"< 500 MPN/ 
+100 Ml",
+1194,"RIVER KRISHNA AT DHOM DAM, VILLAGE- WAI, TALUKA-
+MAHABALESHWAR, DISTRICT-SATARA.",MAHARASHTRA  22.0,,30.0,0.3,6.6,,2.0  8.0,5,137,1.0,3.0,0.30,1.65,2,20,2,250,2,14
+2190,"RIEVR KRISHNA AT GANPATI GHAT, WAI, VILLAGE- 
+WAI,TALUKA- WAI,DISTRICT- SATARA.",MAHARASHTRA  25.0,,31.0,5.1,6.3,,7.4  8.2,230,,3504  2.8,5.8,0.30,1.56,8,30,85,250,2,14
+2187,"RIVER KRISHNA AT KSHETRA MAHULI, VILLAGE- 
+KSHETRA-MAHULI,TALUKA- MAHULI, DISTRICT- SATARA.",MAHARASHTRA  23.0,,29.0,5.1,6.3,,7.9  8.5,342,620,2.5,5.4,0.30,3.62,9,110,170,425,4,20
+2188,"RIVER KRISHNA  AT KRISHNA- VENNA SANGAM MAHULI , 
+VILLAGE- MAHULI,TALUKA- MAHULI, DISTRICT- SATARA.",MAHARASHTRA  25.0,,30.0,4.7,6.4,,7.1  8.2,293,,4553  3.0,8.4,0.30,2.88,9,45,150,425,4,17
+36,"RIVER KRISHNA AT OLD  KRISHNA BRIDGE, KARAD 
+STATION ROAD , KARAD, TALUKA- KARAD, DISTRICT- 
+SATARA.",MAHARASHTRA  25.0,,31.5,5.3,6.2,,7.5  8.1,82,,2086  2.8,5.2,0.30,1.74,8,30,140,250,4,14

@@ -1,0 +1,29 @@
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+"Station 
+Code",Monitoring Location,State Name,"Temperature 
+(°C)",,"Dissolved 
+Oxygen 
+(mg/L)",,pH,,"Conductivity 
+(µmho/cm)",,"BOD 
+(mg/L)",,"Nitrate N 
+(mg/L)",,"Fecal Coliform  
+(MPN/100ml)",,"Total Coliform  
+(MPN/100ml)",,"Fecal 
+Streptococci 
+(MPN/100ml)",
+,,,Min,,Max  Min  Max  Min Max  Min,,,,,,Max  Min  Max  Min  Max,,,,"Min 
+Max",,"Min 
+Max",,"Min 
+Max",
+"Primary Water Quality Criteria notified under The E (P) Rules, 1986",,,,,"> 5.0 
+mg/L",,6.5 - 8.5,,,,"< 3.0 
+mg/L",,,,"< 2500 MPN/ 100 
+Ml",,,,"< 500 MPN/ 
+100 Ml",
+1205,"RIVER BHAVANI AT BHAVANI, TAMILNADU",TAMIL NADU,28.7,37.0,5.3,6.7,,7.6  8.5,342,968,1.0,2.4,0.32,3.92,7,24,12,39,,
+1201,"RIVER BHAVANI AT BADTHARAKALIAMMAN KOIL, 
+TAMILNADU",TAMIL NADU,19.0,30.0,5.6,6.6,,6.9  8.0,93,409,1.0,2.7,0.32,0.74,7,140,14,320,,
+1204,"RIVER BHAVANI AT SIRUMUGAI, TAMILNADU",TAMIL NADU,20.0,30.0,5.6,6.9,,7.0  8.4,128,391,1.0,2.4,0.32,1.25,8,68,14,200,,
+1321,"RIVER BHAVANI AT BHAVANI SAGAR, TAMILNADU",TAMIL NADU,26.0,34.0,5.2,6.5,,7.2  8.6,184,579,1.0,2.9,0.32,1.47,11,17,20,40,,
+3019,"RIVER BHAVANI AT D/S OF BHAVANISAGAR, 
+SATHYAMANGALAM, ERODE, TAMILNADU",TAMIL NADU,27.0,34.0,5.8,6.9,,7.3  8.1,159,436,1.0,2.7,0.32,2.95,9,68,14,170,,

@@ -1,0 +1,33 @@
+0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+"Station 
+Code",Monitoring Location,State Name,"Temperature 
+(°C)",,"Dissolved 
+Oxygen 
+(mg/L)",,pH,,"Conductivity 
+(µmho/cm)",,"BOD 
+(mg/L)",,"Nitrate N 
+(mg/L)",,"Fecal Coliform  
+(MPN/100ml)",,"Total Coliform  
+(MPN/100ml)",,"Fecal 
+Streptococci 
+(MPN/100ml)",
+,,,Min,,Max  Min  Max  Min Max  Min,,,,,,Max  Min  Max  Min  Max,,,,"Min 
+Max",,"Min 
+Max",,"Min 
+Max",
+"Primary Water Quality Criteria notified under The E (P) Rules, 1986",,,,,"> 5.0 
+mg/L",,6.5 - 8.5,,,,"< 3.0 
+mg/L",,,,"< 2500 MPN/ 100 
+Ml",,,,"< 500 MPN/ 
+100 Ml",
+1491,"RIVER BHAGIRATHI AT GANGOTRI,",UTTARAKHAND,7.0,7.0,,11.0  11.0  8.4  8.4,,,84,84,1.0,1.0,0.32,0.32,2,2,2,2,2,2
+5451,RIVER MANDAKINI AT KEDARNATH,UTTARAKHAND  10.0,,,10.0  11.4  11.4  8.0  8.0,,,,50,50,1.0,1.0,0.32,0.32,2,2,2,2,2,2
+5452,RIVER ALAKNANDA AT BADRINATH,UTTARAKHAND  13.5,,,13.5  11.2  11.2  7.3  7.3,,,,43,43,1.0,1.0,0.32,0.32,2,2,2,2,2,2
+1484,"RIVER ALAKNANDA B/C TO RIVER MANDAKINI AT RUDRA 
+PRAYAG",UTTARAKHAND  15.0,,,17.0  10.0  10.6  7.6  8.3,,,,47,137,1.0,1.0,0.32,0.35,2,2,2,4,2,2
+1485,"RIVER MANDAKINI B/C TO RIVER ALKALNADA AT 
+RUDRAPRAYAG,",UTTARAKHAND  14.0,,17.0,,9.8  10.8  7.6  7.8,,,61,80,1.0,1.0,0.32,0.33,2,2,2,4,2,2
+1486,"RIVER ALAKNANDA A/C OF RIVER MANDAKINI AND 
+RIVER ALAKNANDA  AT RUDRAPRAYAG",UTTARAKHAND  14.0,,,17.0  10.2  10.8  7.4  8.2,,,,58,122,1.0,1.0,0.32,0.33,2,2,2,4,2,2
+1487,"RIVER ALAKNANDA B/C TORIVER  BHAGIRATHI AT 
+DEVPRAYAG,",UTTARAKHAND  15.0,,,19.0  10.0  10.6  7.8  8.3,,,,89,128,1.0,1.0,0.32,0.33,2,2,2,4,2,2
