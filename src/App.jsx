@@ -3,6 +3,7 @@ import { SignedIn, SignedOut } from '@clerk/clerk-react'
 import LandingPage from './components/LandingPage'
 import Dashboard from './components/Dashboard'
 import EmergencyRequest from './components/EmergencyRequest'
+import AshaReport from './components/AshaReport'
 import './App.css'
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/asha-report" element={<AshaReport />} />
         </Routes>
       </BrowserRouter>
     )
@@ -41,6 +43,19 @@ function App() {
               </SignedOut>
             </>
           } 
+        />
+        <Route 
+          path="/asha-report" 
+          element={
+            <>
+              <SignedIn>
+                <AshaReport />
+              </SignedIn>
+              <SignedOut>
+                <Navigate to="/" replace />
+              </SignedOut>
+            </>
+          }
         />
         <Route 
           path="/emergency-request" 

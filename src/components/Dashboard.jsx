@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Navbar from './Navbar'
 import './Dashboard.css'
 import {
@@ -6,7 +6,6 @@ import {
   GOOGLE_MAPS_API_KEY,
   WATER_HIGHLIGHT_STYLES
 } from '../constants/maps'
-import { saveAshaWorkerReport } from '../services/reportService'
 
 function Dashboard() {
   const [predictionData, setPredictionData] = useState({
@@ -24,162 +23,18 @@ function Dashboard() {
   const [predictionResult, setPredictionResult] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [mapStatus, setMapStatus] = useState('Loading map...')
-  const [isAshaModalOpen, setIsAshaModalOpen] = useState(false)
-  const [isAshaAuthenticated, setIsAshaAuthenticated] = useState(false)
-  const [ashaLogin, setAshaLogin] = useState({ username: '', password: '' })
-  const [isSavingReport, setIsSavingReport] = useState(false)
-  const [ashaStatusMessage, setAshaStatusMessage] = useState('')
-  const [ashaFormData, setAshaFormData] = useState({
-    locationLabel: '',
-    latitude: '',
-    longitude: '',
-    symptoms: [],
-    peopleCount: '1',
-    waterMuddy: 'unknown',
-    waterSource: 'river',
-    flooding: 'no',
-    illnessStart: '',
-    notes: '',
-    imageFileName: ''
-  })
-  const [ashaReports, setAshaReports] = useState(() => {
-    try {
-      const stored = localStorage.getItem('ashaReports')
-      return stored ? JSON.parse(stored) : []
-    } catch (error) {
-      console.warn('Unable to parse stored ASHA reports', error)
-      return []
-    }
-  })
-
   const mapContainerRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const userMarkerRef = useRef(null)
   const accuracyCircleRef = useRef(null)
   const waterMarkersRef = useRef([])
   const geoWatchIdRef = useRef(null)
-  const ASHA_CREDENTIALS = useMemo(
-    () => ({ username: 'user', password: '12345' }),
-    []
-  )
-
-  useEffect(() => {
-    localStorage.setItem('ashaReports', JSON.stringify(ashaReports))
-  }, [ashaReports])
-
-  useEffect(() => {
-    if (isAshaModalOpen && isAshaAuthenticated && 'geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setAshaFormData(prev => ({
-            ...prev,
-            latitude: pos.coords.latitude.toFixed(5),
-            longitude: pos.coords.longitude.toFixed(5),
-            locationLabel: prev.locationLabel || 'Auto-detected location'
-          }))
-        },
-        () => {
-          setAshaStatusMessage('Auto location failed. Please enter manually.')
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 20000,
-          maximumAge: 60000
-        }
-      )
-    }
-  }, [isAshaModalOpen, isAshaAuthenticated])
 
   const clearWaterMarkers = () => {
     waterMarkersRef.current.forEach(marker => marker.setMap(null))
     waterMarkersRef.current = []
   }
 
-  const handleAshaLoginSubmit = (e) => {
-    e.preventDefault()
-    if (
-      ashaLogin.username.trim() === ASHA_CREDENTIALS.username &&
-      ashaLogin.password === ASHA_CREDENTIALS.password
-    ) {
-      setIsAshaAuthenticated(true)
-      setAshaStatusMessage('Access granted. You can submit a report now.')
-    } else {
-      setAshaStatusMessage('Invalid credentials. Please try again.')
-    }
-  }
-
-  const closeAshaModal = () => {
-    setIsAshaModalOpen(false)
-    setIsAshaAuthenticated(false)
-    setAshaLogin({ username: '', password: '' })
-    setAshaStatusMessage('')
-    setAshaFormData(prev => ({
-      ...prev,
-      notes: '',
-      imageFileName: ''
-    }))
-  }
-
-  const toggleSymptom = (symptom) => {
-    setAshaFormData(prev => {
-      const exists = prev.symptoms.includes(symptom)
-      return {
-        ...prev,
-        symptoms: exists
-          ? prev.symptoms.filter(item => item !== symptom)
-          : [...prev.symptoms, symptom]
-      }
-    })
-  }
-
-  const handleAshaFormChange = (e) => {
-    const { name, value, files } = e.target
-    if (files && files[0]) {
-      setAshaFormData(prev => ({
-        ...prev,
-        imageFileName: files[0].name
-      }))
-    } else {
-      setAshaFormData(prev => ({
-        ...prev,
-        [name]: value
-      }))
-    }
-  }
-
-  const handleAshaReportSubmit = async (e) => {
-    e.preventDefault()
-    setIsSavingReport(true)
-    const isOnline = navigator.onLine
-    const timestamp = new Date().toISOString()
-
-    const baseReport = {
-      id: `${Date.now()}`,
-      ...ashaFormData,
-      symptoms: ashaFormData.symptoms.length
-        ? ashaFormData.symptoms
-        : ['No symptoms selected'],
-      createdAt: timestamp,
-      submittedBy: ASHA_CREDENTIALS.username
-    }
-
-    try {
-      if (isOnline) {
-        await saveAshaWorkerReport(baseReport)
-        setAshaStatusMessage('Report submitted and synced successfully.')
-        setAshaReports(prev => [{ ...baseReport, status: 'Synced' }, ...prev].slice(0, 20))
-      } else {
-        setAshaStatusMessage('Report saved offline. It will sync once online.')
-        setAshaReports(prev => [{ ...baseReport, status: 'Pending sync' }, ...prev].slice(0, 20))
-      }
-    } catch (error) {
-      console.error('Unable to save ASHA report to Firebase', error)
-      setAshaStatusMessage('Could not reach Firebase. Report stored locally.')
-      setAshaReports(prev => [{ ...baseReport, status: 'Failed' }, ...prev].slice(0, 20))
-    } finally {
-      setIsSavingReport(false)
-    }
-  }
 
   const highlightNearbyWaterBodies = (center) => {
     if (!window.google || !window.google.maps || !window.google.maps.places || !mapInstanceRef.current) {
@@ -234,6 +89,12 @@ function Dashboard() {
 
       }
     )
+  }
+
+  const openAshaReportWindow = () => {
+    const baseUrl = window.location.origin
+    const url = `${baseUrl}/asha-report`
+    window.open(url, '_blank', 'noopener,noreferrer,width=900,height=800')
   }
 
   const showDefaultWaterBodies = (reason) => {
@@ -645,6 +506,14 @@ function Dashboard() {
 
       <main className="dashboard-main">
         <div className="dashboard-grid">
+          <button
+            type="button"
+            className="asha-button standalone"
+            onClick={openAshaReportWindow}
+          >
+            Open ASHA Worker Report
+          </button>
+
           <div className="dashboard-card map-card">
             <h2 className="card-title">Check Location</h2>
             <p className="map-description">
@@ -658,13 +527,6 @@ function Dashboard() {
               aria-label="Google Map showing your location and nearby water"
             ></div>
             {mapStatus && <p className="map-status">{mapStatus}</p>}
-            <button
-              type="button"
-              className="asha-button"
-              onClick={() => setIsAshaModalOpen(true)}
-            >
-              ASHA Worker Report
-            </button>
           </div>
 
           {/* Prediction Form */}
@@ -973,228 +835,6 @@ function Dashboard() {
           </div>
         </div>
       </main>
-      {isAshaModalOpen && (
-        <div className="asha-modal-backdrop" role="dialog" aria-modal="true">
-          <div className="asha-modal">
-            <button className="modal-close" onClick={closeAshaModal} aria-label="Close">
-              ×
-            </button>
-            <h2>ASHA Worker Quick Report</h2>
-            {!isAshaAuthenticated ? (
-              <form className="asha-login" onSubmit={handleAshaLoginSubmit}>
-                <label>
-                  Username
-                  <input
-                    type="text"
-                    name="username"
-                    value={ashaLogin.username}
-                    onChange={e =>
-                      setAshaLogin(prev => ({ ...prev, username: e.target.value }))
-                    }
-                    required
-                  />
-                </label>
-                <label>
-                  Password
-                  <input
-                    type="password"
-                    name="password"
-                    value={ashaLogin.password}
-                    onChange={e =>
-                      setAshaLogin(prev => ({ ...prev, password: e.target.value }))
-                    }
-                    required
-                  />
-                </label>
-                <button type="submit" className="asha-primary-btn">
-                  Verify
-                </button>
-                {ashaStatusMessage && (
-                  <p className="asha-status">{ashaStatusMessage}</p>
-                )}
-              </form>
-            ) : (
-              <>
-                {!navigator.onLine && (
-                  <div className="offline-banner">Report saved offline until connection returns.</div>
-                )}
-                <form className="asha-form" onSubmit={handleAshaReportSubmit}>
-                  <div className="form-row">
-                    <label>
-                      Auto location
-                      <input
-                        type="text"
-                        name="locationLabel"
-                        value={ashaFormData.locationLabel}
-                        onChange={handleAshaFormChange}
-                        placeholder="Auto-detected location"
-                      />
-                    </label>
-                  </div>
-                  <div className="form-row">
-                    <label>
-                      Latitude
-                      <input
-                        type="text"
-                        name="latitude"
-                        value={ashaFormData.latitude}
-                        onChange={handleAshaFormChange}
-                        placeholder="28.6139"
-                      />
-                    </label>
-                    <label>
-                      Longitude
-                      <input
-                        type="text"
-                        name="longitude"
-                        value={ashaFormData.longitude}
-                        onChange={handleAshaFormChange}
-                        placeholder="77.2090"
-                      />
-                    </label>
-                  </div>
-
-                  <div className="symptom-section">
-                    <span>Symptoms observed</span>
-                    <div className="symptom-options">
-                      {['Diarrhoea', 'Vomiting', 'Fever'].map(symptom => (
-                        <label key={symptom} className="checkbox-option">
-                          <input
-                            type="checkbox"
-                            checked={ashaFormData.symptoms.includes(symptom)}
-                            onChange={() => toggleSymptom(symptom)}
-                          />
-                          {symptom}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <label>
-                    Number of people affected
-                    <input
-                      type="number"
-                      name="peopleCount"
-                      min="1"
-                      value={ashaFormData.peopleCount}
-                      onChange={handleAshaFormChange}
-                    />
-                  </label>
-
-                  <div className="form-row">
-                    <label>
-                      Water looks muddy?
-                      <select
-                        name="waterMuddy"
-                        value={ashaFormData.waterMuddy}
-                        onChange={handleAshaFormChange}
-                      >
-                        <option value="unknown">Unknown</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                      </select>
-                    </label>
-                    <label>
-                      Water source
-                      <select
-                        name="waterSource"
-                        value={ashaFormData.waterSource}
-                        onChange={handleAshaFormChange}
-                      >
-                        <option value="river">River</option>
-                        <option value="well">Well</option>
-                        <option value="handpump">Handpump</option>
-                        <option value="tap">Tap</option>
-                        <option value="lake">Lake</option>
-                      </select>
-                    </label>
-                  </div>
-
-                  <label>
-                    Flooding recently?
-                    <select
-                      name="flooding"
-                      value={ashaFormData.flooding}
-                      onChange={handleAshaFormChange}
-                    >
-                      <option value="no">No</option>
-                      <option value="yes">Yes</option>
-                      <option value="unsure">Unsure</option>
-                    </select>
-                  </label>
-
-                  <label>
-                    Date illness started
-                    <input
-                      type="date"
-                      name="illnessStart"
-                      value={ashaFormData.illnessStart}
-                      onChange={handleAshaFormChange}
-                    />
-                  </label>
-
-                  <label>
-                    Notes / observations
-                    <textarea
-                      name="notes"
-                      value={ashaFormData.notes}
-                      onChange={handleAshaFormChange}
-                      placeholder="Add any quick observations..."
-                    ></textarea>
-                  </label>
-
-                  <label>
-                    Optional photo
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAshaFormChange}
-                    />
-                    {ashaFormData.imageFileName && (
-                      <span className="file-name">{ashaFormData.imageFileName}</span>
-                    )}
-                  </label>
-
-                  <button
-                    type="submit"
-                    className="asha-primary-btn"
-                    disabled={isSavingReport}
-                  >
-                    {isSavingReport ? 'Saving...' : 'Submit report'}
-                  </button>
-                  {ashaStatusMessage && (
-                    <p className="asha-status">{ashaStatusMessage}</p>
-                  )}
-                </form>
-
-                <div className="asha-history">
-                  <h3>Past reports</h3>
-                  {ashaReports.length === 0 ? (
-                    <p>No reports yet.</p>
-                  ) : (
-                    <ul>
-                      {ashaReports.map(report => (
-                        <li key={report.id}>
-                          <div>
-                            <strong>{new Date(report.createdAt).toLocaleString()}</strong>
-                            <span className={`status-badge status-${report.status === 'Synced' ? 'synced' : 'pending'}`}>
-                              {report.status}
-                            </span>
-                          </div>
-                          <p>
-                            {report.peopleCount} people • Symptoms:{' '}
-                            {report.symptoms.join(', ')}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
       </div>
     </>
   )

@@ -1,4 +1,4 @@
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
+import { addDoc, collection, serverTimestamp, doc, setDoc } from 'firebase/firestore'
 import { db } from './firebase'
 
 const emergencyCollection = collection(db, 'emergencyReports')
@@ -18,14 +18,14 @@ export const saveAshaWorkerReport = async (data) => {
     ...data,
     submittedAt: serverTimestamp()
   }
-  await addDoc(ashaCollection, payload)
+  return addDoc(ashaCollection, payload)
 }
 
 export const logVisitorLogin = async (data) => {
-  const payload = {
+  const docRef = doc(visitorLoginsCollection, data.userId)
+  await setDoc(docRef, {
     ...data,
-    loggedAt: serverTimestamp()
-  }
-  await addDoc(visitorLoginsCollection, payload)
+    lastLoginAt: serverTimestamp()
+  })
 }
 
