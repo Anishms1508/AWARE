@@ -178,19 +178,57 @@ async def predict_risk(input_data: WaterQualityInput):
         # Make prediction
         prediction = model.predict(x_ready)
         
-        # Get predicted risk level
-        risk_level = label_encoder.inverse_transform(prediction)[0]
-        
-        # Get prediction probabilities for confidence
+        # Try to derive readable predicted label
+        try:
+            risk_level = label_encoder.inverse_transform(prediction)[0]
+        except Exception:
+            risk_level = prediction[0]
+
+        # Probabilities / confidence / risk score
+        probabilities = None
+        confidence = None
+        risk_score = None
+        DEFAULT_SCORE_MAP = {'Low': 0.0, 'Medium': 50.0, 'High': 100.0}
+
         if hasattr(model, 'predict_proba'):
-            probabilities = model.predict_proba(x_ready)[0]
-            confidence = float(max(probabilities)) * 100
+            probs = None
+            try:
+                probs = model.predict_proba(x_ready)[0]
+            except Exception:
+                try:
+                    clf = getattr(model, 'named_steps', {}).get('clf', model)
+                    X_for_clf = x_ready
+                    if hasattr(model, 'named_steps') and 'preproc' in model.named_steps:
+                        X_for_clf = model.named_steps['preproc'].transform(x_ready)
+                    probs = clf.predict_proba(X_for_clf)[0]
+                except Exception:
+                    probs = None
+
+            if probs is not None:
+                probabilities = probs
+                if hasattr(model, 'classes_'):
+                    model_classes = model.classes_
+                    try:
+                        readable_classes = label_encoder.inverse_transform(model_classes)
+                    except Exception:
+                        readable_classes = [str(c) for c in model_classes]
+                else:
+                    readable_classes = [str(c) for c in label_encoder.classes_]
+
+                score_map = DEFAULT_SCORE_MAP
+                scores = [score_map.get(str(lbl), 50.0) for lbl in readable_classes]
+                risk_score_val = float(sum(p * s for p, s in zip(probabilities, scores)))
+                confidence = float(max(probabilities)) * 100.0
+                risk_score = round(risk_score_val, 2)
+                confidence = round(confidence, 2)
+            else:
+                probabilities = None
+                confidence = None
+                risk_score = float(DEFAULT_SCORE_MAP.get(str(risk_level), 50.0))
         else:
+            probabilities = None
             confidence = None
-        
-        # Calculate a risk score based on the class (optional)
-        risk_score_map = {'Low': 25, 'Medium': 50, 'High': 75}
-        risk_score = risk_score_map.get(risk_level, 50)
+            risk_score = float(DEFAULT_SCORE_MAP.get(str(risk_level), 50.0))
         
         return PredictionResponse(
             riskLevel=risk_level,
