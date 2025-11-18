@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Navbar from './Navbar'
 import './OfficialDashboard.css'
-import { fetchAshaReports, fetchEmergencyReports, deleteAshaReport } from '../services/reportService'
+import { fetchAshaReports, fetchEmergencyReports, deleteAshaReport, deleteEmergencyReport } from '../services/reportService'
 import { jsPDF } from 'jspdf'
 
 const DEFAULT_CENTER = { lat: 30.7333, lng: 76.7794 }
@@ -60,14 +60,14 @@ function OfficialDashboard() {
   const [selectedReport, setSelectedReport] = useState(null)
   const [selectedEmergency, setSelectedEmergency] = useState(null)
   const [reportIndex, setReportIndex] = useState(0)
-  const [emergencyIndex, setEmergencyIndex] = useState(0)
   const [previewUrl, setPreviewUrl] = useState('')
   const [emergencyPreviewUrl, setEmergencyPreviewUrl] = useState('')
   const [deletingReportId, setDeletingReportId] = useState(null)
+  const [deletingEmergencyId, setDeletingEmergencyId] = useState(null)
   const [summary, setSummary] = useState({
     newReports: 0,
     highRisk: 0,
-    muddyRatio: 0,
+    emergencyCount: 0,
     topArea: '-'
   })
   const [loading, setLoading] = useState(true)
@@ -75,6 +75,7 @@ function OfficialDashboard() {
 
   const mapRef = useRef(null)
   const mapInstance = useRef(null)
+  const mapMarkers = useRef([])
 
   const OFFICIAL_CREDENTIALS = useMemo(
     () => ({ username: 'user', password: '12345' }),
@@ -95,7 +96,7 @@ function OfficialDashboard() {
         const emergencies = await fetchEmergencyReports()
         setReports(mapped)
         setEmergencyReports(emergencies)
-        computeSummary(mapped)
+        computeSummary(mapped, emergencies)
         initMap(mapped)
       } catch (err) {
         console.error(err)
@@ -112,27 +113,17 @@ function OfficialDashboard() {
     setReportIndex(0)
   }, [reports.length])
 
-  useEffect(() => {
-    setEmergencyIndex(0)
-  }, [emergencyReports.length])
-
-  useEffect(() => {
-    setEmergencyIndex(0)
-  }, [emergencyReports.length])
-
-  const computeSummary = (data) => {
+  const computeSummary = (reportsData, emergencyData = emergencyReports) => {
     const now = new Date()
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const newReports = data.filter(report => {
+    const newReports = reportsData.filter(report => {
       if (!report.submittedAt) return false
       return new Date(report.submittedAt) >= todayStart
     }).length
 
-    const highRisk = data.filter(report => report.risk === 'High').length
-    const muddyFlags = data.filter(report => report.waterDirty === 'yes').length
-    const muddyRatio = data.length ? Math.round((muddyFlags / data.length) * 100) : 0
+    const highRisk = reportsData.filter(report => report.risk === 'High').length
 
-    const areaCounts = data.reduce((acc, report) => {
+    const areaCounts = reportsData.reduce((acc, report) => {
       const key = report.villageName || 'Unknown'
       acc[key] = (acc[key] || 0) + Number(report.peopleCount || 0)
       return acc
@@ -142,7 +133,7 @@ function OfficialDashboard() {
     setSummary({
       newReports,
       highRisk,
-      muddyRatio,
+      emergencyCount: emergencyData.length,
       topArea
     })
   }
@@ -299,10 +290,12 @@ function OfficialDashboard() {
     if (!confirmDelete) return
     try {
       setDeletingReportId(report.id)
+      setError('')
       await deleteAshaReport(report.id)
       setReports(prev => {
         const updated = prev.filter(item => item.id !== report.id)
-        computeSummary(updated)
+        computeSummary(updated, emergencyReports)
+        initMap(updated)
         setReportIndex(prevIndex => {
           if (!updated.length) return 0
           return Math.min(prevIndex, updated.length - 1)
@@ -314,8 +307,10 @@ function OfficialDashboard() {
         return updated
       })
     } catch (err) {
-      console.error(err)
-      setError('Failed to delete report.')
+      console.error('Delete error:', err)
+      const errorMessage = err?.message || 'Failed to delete report. Please check your Firestore permissions.'
+      setError(errorMessage)
+      alert(`Error: ${errorMessage}`)
     } finally {
       setDeletingReportId(null)
     }
@@ -339,6 +334,10 @@ function OfficialDashboard() {
         })
       }
 
+      // Clear existing markers
+      mapMarkers.current.forEach(marker => marker.setMap(null))
+      mapMarkers.current = []
+
       const markers = data
         .filter(report => report.latitude && report.longitude)
         .map(report => {
@@ -357,6 +356,8 @@ function OfficialDashboard() {
           marker.addListener('click', () => setSelectedReport(report))
           return marker
         })
+
+      mapMarkers.current = markers
 
       if (markers.length) {
         const bounds = new maps.LatLngBounds()
@@ -384,7 +385,6 @@ function OfficialDashboard() {
 
   const pageClass = isAuthenticated ? 'official-page' : 'official-page login-state'
   const currentReport = reports[reportIndex] || null
-  const currentEmergency = emergencyReports[emergencyIndex] || null
 
   const handlePrevReport = () => {
     setReportIndex(prev => (reports.length ? (prev - 1 + reports.length) % reports.length : 0))
@@ -394,12 +394,31 @@ function OfficialDashboard() {
     setReportIndex(prev => (reports.length ? (prev + 1) % reports.length : 0))
   }
 
-  const handlePrevEmergency = () => {
-    setEmergencyIndex(prev => (emergencyReports.length ? (prev - 1 + emergencyReports.length) % emergencyReports.length : 0))
-  }
-
-  const handleNextEmergency = () => {
-    setEmergencyIndex(prev => (emergencyReports.length ? (prev + 1) % emergencyReports.length : 0))
+  const handleDeleteEmergency = async (report) => {
+    if (!report?.id) return
+    const confirmDelete = window.confirm('Delete this emergency request permanently?')
+    if (!confirmDelete) return
+    try {
+      setDeletingEmergencyId(report.id)
+      setError('')
+      await deleteEmergencyReport(report.id)
+      setEmergencyReports(prev => {
+        const updated = prev.filter(item => item.id !== report.id)
+        if (selectedEmergency?.id === report.id) {
+          setSelectedEmergency(null)
+          setEmergencyPreviewUrl('')
+        }
+        computeSummary(reports, updated)
+        return updated
+      })
+    } catch (err) {
+      console.error('Delete error:', err)
+      const errorMessage = err?.message || 'Failed to delete emergency request. Please check your Firestore permissions.'
+      setError(errorMessage)
+      alert(`Error: ${errorMessage}`)
+    } finally {
+      setDeletingEmergencyId(null)
+    }
   }
 
   return (
@@ -438,6 +457,17 @@ function OfficialDashboard() {
           </div>
         ) : (
           <>
+            {error && (
+              <section className="official-card">
+                <p className="official-error" style={{ margin: 0 }}>{error}</p>
+                <button 
+                  onClick={() => setError('')} 
+                  style={{ marginTop: '0.5rem', padding: '0.25rem 0.75rem', background: 'rgba(148, 163, 184, 0.2)', color: '#e2e8f0', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                  Dismiss
+                </button>
+              </section>
+            )}
             <section className="official-card summary-card">
               <div className="summary-grid">
                 <div className="summary-item">
@@ -449,8 +479,8 @@ function OfficialDashboard() {
                   <span className="summary-value">{summary.highRisk}</span>
                 </div>
                 <div className="summary-item">
-                  <span className="summary-label">Muddy water %</span>
-                  <span className="summary-value">{summary.muddyRatio}%</span>
+                  <span className="summary-label">Emergency requests</span>
+                  <span className="summary-value">{summary.emergencyCount}</span>
                 </div>
                 <div className="summary-item">
                   <span className="summary-label">Most affected area</span>
@@ -575,7 +605,7 @@ function OfficialDashboard() {
                       <th>Date</th>
                       <th>Water Body</th>
                       <th>Location</th>
-                      <th>View</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -585,9 +615,21 @@ function OfficialDashboard() {
                         <td>{report.waterBodyName || '-'}</td>
                         <td>{report.location || '-'}</td>
                         <td>
-                          <button className="view-btn" onClick={() => handleViewEmergency(report)}>
-                            View
-                          </button>
+                          <div className="table-actions">
+                            <button className="action-btn" onClick={() => handleViewEmergency(report)}>
+                              View
+                            </button>
+                            <button className="action-btn download-btn" onClick={() => handleDownloadEmergency(report)}>
+                              Download
+                            </button>
+                            <button
+                              className="action-btn delete-btn"
+                              onClick={() => handleDeleteEmergency(report)}
+                              disabled={deletingEmergencyId === report.id}
+                            >
+                              {deletingEmergencyId === report.id ? 'Deleting…' : 'Delete'}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -595,35 +637,6 @@ function OfficialDashboard() {
                 </table>
               )}
             </section>
-
-            {emergencyReports.length > 0 && (
-              <section className="official-card archive-section">
-                <div className="archive-header">
-                  <button type="button" className="archive-nav" onClick={handlePrevEmergency}>‹</button>
-                  <div>
-                    <h2>Emergency Archive</h2>
-                    <span className="archive-count">{emergencyIndex + 1} / {emergencyReports.length}</span>
-                  </div>
-                  <button type="button" className="archive-nav" onClick={handleNextEmergency}>›</button>
-                </div>
-                {currentEmergency && (
-                  <div className="report-card">
-                    <div>
-                      <h3>{currentEmergency.waterBodyName || 'Emergency report'}</h3>
-                      <p className="report-date">{formatDateOnly(currentEmergency.submittedAt)}</p>
-                    </div>
-                    <div className="report-actions">
-                      <button type="button" onClick={() => handleViewEmergency(currentEmergency)}>
-                        View
-                      </button>
-                      <button type="button" onClick={() => handleDownloadEmergency(currentEmergency)}>
-                        Download
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </section>
-            )}
 
             {selectedEmergency && (
               <section className="official-card detail-card">

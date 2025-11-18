@@ -6,6 +6,7 @@ import {
   GOOGLE_MAPS_API_KEY,
   WATER_HIGHLIGHT_STYLES
 } from '../constants/maps'
+import { generateDiseaseAnalysis } from '../services/geminiService'
 
 function Dashboard() {
   const [predictionData, setPredictionData] = useState({
@@ -415,17 +416,47 @@ function Dashboard() {
 
       const result = await response.json()
       
-      // Map the risk level to diseases and recommendations
-      const diseases = getDiseasesForRisk(result.riskLevel)
+      // Call Gemini API to generate diseases and recommendations
+      let diseases = []
+      let recommendations = []
+      let geminiError = null
+      
+      try {
+        const geminiData = await generateDiseaseAnalysis({
+          riskLevel: result.riskLevel,
+          riskScore: result.riskScore,
+          temperature: temp,
+          do: do_val,
+          ph: ph_val,
+          conductivity: cond,
+          bod: bod,
+          nitrate: nitrate,
+          fecalColiform: fecal,
+          totalColiform: total,
+          location: predictionData.location,
+          waterSource: predictionData.waterSource
+        })
+        
+        diseases = geminiData.diseases || []
+        recommendations = geminiData.recommendations || []
+        geminiError = geminiData.error || null
+      } catch (geminiErr) {
+        console.error('Gemini API error:', geminiErr)
+        // Use fallback if Gemini fails
+        diseases = getDiseasesForRisk(result.riskLevel)
+        recommendations = getRecommendations(result.riskLevel)
+        geminiError = geminiErr.message
+      }
       
       setPredictionResult({
         riskScore: result.riskScore || 'N/A',
         riskLevel: result.riskLevel,
         diseases,
-        recommendations: getRecommendations(result.riskLevel),
+        recommendations,
         location: predictionData.location,
         waterSource: predictionData.waterSource,
-        confidence: result.confidence
+        confidence: result.confidence,
+        geminiError: geminiError // Store error but don't block results
       })
     } catch (error) {
       console.error('Prediction error:', error)
@@ -695,20 +726,6 @@ function Dashboard() {
             </form>
           </div>
 
-          <div className="dashboard-card emergency-card">
-            <h2 className="card-title">Quick Emergency Request</h2>
-            <p className="emergency-description">
-              Spot unusual water conditions? Submit an emergency request for officials to respond faster.
-            </p>
-            <button
-              type="button"
-              className="official-button"
-              onClick={() => window.location.href = '/emergency-request'}
-            >
-              Go to Emergency Request Form
-            </button>
-          </div>
-
           {/* Prediction Results */}
           {predictionResult && (
             <div className="dashboard-card results-card">
@@ -734,6 +751,11 @@ function Dashboard() {
               {predictionResult.diseases.length > 0 && (
                 <div className="diseases-section">
                   <h3>Potential Diseases</h3>
+                  {predictionResult.geminiError && (
+                    <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>
+                      ⚠️ Using fallback analysis (Gemini API unavailable)
+                    </p>
+                  )}
                   <div className="diseases-list">
                     {predictionResult.diseases.map((disease, idx) => (
                       <span key={idx} className="disease-tag">{disease}</span>
@@ -744,8 +766,21 @@ function Dashboard() {
 
                   <div className="recommendations-section">
                     <h3>Recommendations</h3>
+                    {predictionResult.geminiError && (
+                      <p style={{
+                        marginBottom: '1rem',
+                        padding: '0.5rem 0',
+                        color: '#94a3b8',
+                        fontSize: '0.9rem',
+                        fontStyle: 'italic'
+                      }}>
+                        Advanced analysis unavailable, general tips:
+                      </p>
+                    )}
                     <div className="recommendations-grid">
-                      {predictionResult.recommendations.map((rec, idx) => (
+                      {predictionResult.recommendations
+                        .filter(rec => !rec.toLowerCase().includes('extended analysis unavailable') && !rec.toLowerCase().includes('advanced analysis unavailable'))
+                        .map((rec, idx) => (
                         <div key={idx} className="recommendation-item">
                           <span className="recommendation-icon">✓</span>
                           <span className="recommendation-text">{rec}</span>
@@ -757,6 +792,20 @@ function Dashboard() {
               )}
             </div>
           )}
+
+          <div className="dashboard-card emergency-card">
+            <h2 className="card-title">Quick Emergency Request</h2>
+            <p className="emergency-description">
+              Spot unusual water conditions? Submit an emergency request for officials to respond faster.
+            </p>
+            <button
+              type="button"
+              className="official-button"
+              onClick={() => window.location.href = '/emergency-request'}
+            >
+              Go to Emergency Request Form
+            </button>
+          </div>
 
           {/* Stats Cards */}
           <div className="dashboard-card stats-card">

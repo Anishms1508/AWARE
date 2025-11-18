@@ -51,8 +51,28 @@ export const deleteAshaReport = async (id) => {
   if (!id) {
     throw new Error('Report id is required to delete an ASHA report')
   }
-  const ref = doc(ashaCollection, id)
-  await deleteDoc(ref)
+  try {
+    const ref = doc(ashaCollection, id)
+    await deleteDoc(ref)
+    console.log('Successfully deleted ASHA report:', id)
+  } catch (error) {
+    console.error('Error deleting ASHA report:', error)
+    throw new Error(`Failed to delete report: ${error.message || 'Permission denied. Please check Firestore security rules.'}`)
+  }
+}
+
+export const deleteEmergencyReport = async (id) => {
+  if (!id) {
+    throw new Error('Report id is required to delete an emergency report')
+  }
+  try {
+    const ref = doc(emergencyCollection, id)
+    await deleteDoc(ref)
+    console.log('Successfully deleted emergency report:', id)
+  } catch (error) {
+    console.error('Error deleting emergency report:', error)
+    throw new Error(`Failed to delete emergency request: ${error.message || 'Permission denied. Please check Firestore security rules.'}`)
+  }
 }
 
 export const logVisitorLogin = async (data) => {
