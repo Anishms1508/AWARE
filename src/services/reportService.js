@@ -1,4 +1,4 @@
-import { addDoc, collection, serverTimestamp, doc, setDoc, getDocs, query, orderBy } from 'firebase/firestore'
+import { addDoc, collection, serverTimestamp, doc, setDoc, getDocs, query, orderBy, deleteDoc } from 'firebase/firestore'
 import { db } from './firebase'
 
 const emergencyCollection = collection(db, 'emergencyReports')
@@ -45,6 +45,14 @@ export const fetchAshaReports = async () => {
       submittedAt: data.submittedAt ? data.submittedAt.toDate().toISOString() : null
     }
   })
+}
+
+export const deleteAshaReport = async (id) => {
+  if (!id) {
+    throw new Error('Report id is required to delete an ASHA report')
+  }
+  const ref = doc(ashaCollection, id)
+  await deleteDoc(ref)
 }
 
 export const logVisitorLogin = async (data) => {

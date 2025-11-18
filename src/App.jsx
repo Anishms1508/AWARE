@@ -1,11 +1,24 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { SignedIn, SignedOut } from '@clerk/clerk-react'
+import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react'
+import { useMemo } from 'react'
 import LandingPage from './components/LandingPage'
 import Dashboard from './components/Dashboard'
 import EmergencyRequest from './components/EmergencyRequest'
 import AshaReport from './components/AshaReport'
 import OfficialDashboard from './components/OfficialDashboard'
 import './App.css'
+import { hasOfficialAccess } from './utils/accessControl'
+
+const OfficialOnly = ({ children }) => {
+  const { user } = useUser()
+  const canAccessOfficial = useMemo(() => hasOfficialAccess(user), [user])
+
+  if (!canAccessOfficial) {
+    return <Navigate to="/" replace />
+  }
+
+  return children
+}
 
 function App() {
   // Check for Clerk key with both naming conventions
@@ -51,7 +64,9 @@ function App() {
           element={
             <>
               <SignedIn>
-                <AshaReport />
+                <OfficialOnly>
+                  <AshaReport />
+                </OfficialOnly>
               </SignedIn>
               <SignedOut>
                 <Navigate to="/" replace />
@@ -64,7 +79,9 @@ function App() {
           element={
             <>
               <SignedIn>
-                <OfficialDashboard />
+                <OfficialOnly>
+                  <OfficialDashboard />
+                </OfficialOnly>
               </SignedIn>
               <SignedOut>
                 <Navigate to="/" replace />

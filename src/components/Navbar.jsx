@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { SignedIn, SignedOut, useUser, UserButton, SignInButton } from '@clerk/clerk-react'
 import './Navbar.css'
 import { logVisitorLogin } from '../services/reportService'
+import { hasOfficialAccess } from '../utils/accessControl'
 
 function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -15,6 +16,7 @@ function Navbar() {
   const { user } = useUser()
   const userButtonRef = useRef(null)
   const loggedVisitorsRef = useRef(new Set())
+  const canAccessOfficial = useMemo(() => hasOfficialAccess(user), [user])
 
   const handleUserButtonClick = (e) => {
     // Prevent double-clicking if clicking directly on UserButton
@@ -52,11 +54,14 @@ function Navbar() {
 
     if (isSignedIn) {
       items.push({ type: 'link', to: '/dashboard', label: 'Dashboard', icon: '📊', enabled: true })
-      items.push({ type: 'link', to: '/asha-report', label: 'ASHA Report', icon: '📝', enabled: true, external: true })
-      items.push({ type: 'link', to: '/official-dashboard', label: 'Officials Dashboard', icon: '🗺️', enabled: true, external: true })
+      if (canAccessOfficial) {
+        items.push({ type: 'link', to: '/asha-report', label: 'ASHA Report', icon: '📝', enabled: true, external: true })
+        items.push({ type: 'link', to: '/official-dashboard', label: 'Officials Dashboard', icon: '🗺️', enabled: true, external: true })
+      }
       items.push({ type: 'link', to: '/emergency-request', label: 'Emergency Request', icon: '🚨', enabled: true })
     } else {
       items.push({ type: 'div', label: 'Dashboard (Sign in required)', icon: '📊', enabled: false })
+      items.push({ type: 'link', to: '/emergency-request', label: 'Emergency Request', icon: '🚨', enabled: true })
     }
     
     return items

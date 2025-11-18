@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Navbar from './Navbar'
 import './OfficialDashboard.css'
-import { fetchAshaReports, fetchEmergencyReports } from '../services/reportService'
+import { fetchAshaReports, fetchEmergencyReports, deleteAshaReport } from '../services/reportService'
 import { jsPDF } from 'jspdf'
 
 const DEFAULT_CENTER = { lat: 30.7333, lng: 76.7794 }
@@ -63,6 +63,7 @@ function OfficialDashboard() {
   const [emergencyIndex, setEmergencyIndex] = useState(0)
   const [previewUrl, setPreviewUrl] = useState('')
   const [emergencyPreviewUrl, setEmergencyPreviewUrl] = useState('')
+  const [deletingReportId, setDeletingReportId] = useState(null)
   const [summary, setSummary] = useState({
     newReports: 0,
     highRisk: 0,
@@ -290,6 +291,34 @@ function OfficialDashboard() {
     const doc = buildEmergencyPdf(report)
     const fileName = `emergency-${report.id || report.waterBodyName || 'request'}.pdf`
     doc.save(fileName)
+  }
+
+  const handleDeleteReport = async (report) => {
+    if (!report?.id) return
+    const confirmDelete = window.confirm('Delete this report permanently?')
+    if (!confirmDelete) return
+    try {
+      setDeletingReportId(report.id)
+      await deleteAshaReport(report.id)
+      setReports(prev => {
+        const updated = prev.filter(item => item.id !== report.id)
+        computeSummary(updated)
+        setReportIndex(prevIndex => {
+          if (!updated.length) return 0
+          return Math.min(prevIndex, updated.length - 1)
+        })
+        if (selectedReport?.id === report.id) {
+          setSelectedReport(null)
+          setPreviewUrl('')
+        }
+        return updated
+      })
+    } catch (err) {
+      console.error(err)
+      setError('Failed to delete report.')
+    } finally {
+      setDeletingReportId(null)
+    }
   }
 
   useEffect(() => {
@@ -646,11 +675,27 @@ function OfficialDashboard() {
                       <p className="report-date">{formatDateOnly(currentReport.submittedAt)}</p>
                     </div>
                     <div className="report-actions">
-                      <button type="button" onClick={() => handleViewReport(currentReport)}>
+                      <button
+                        type="button"
+                        className="report-action-btn"
+                        onClick={() => handleViewReport(currentReport)}
+                      >
                         View
                       </button>
-                      <button type="button" onClick={() => handleDownloadReport(currentReport)}>
+                      <button
+                        type="button"
+                        className="report-action-btn download-btn"
+                        onClick={() => handleDownloadReport(currentReport)}
+                      >
                         Download
+                      </button>
+                      <button
+                        type="button"
+                        className="report-action-btn delete-btn"
+                        onClick={() => handleDeleteReport(currentReport)}
+                        disabled={deletingReportId === currentReport.id}
+                      >
+                        {deletingReportId === currentReport.id ? 'Deleting…' : 'Delete'}
                       </button>
                     </div>
                   </div>
