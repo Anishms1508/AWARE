@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Navbar from './Navbar'
 import './EmergencyRequest.css'
+import { saveEmergencyReport } from '../services/reportService'
 
 function EmergencyRequest() {
   const [formData, setFormData] = useState({
@@ -67,13 +68,14 @@ function EmergencyRequest() {
     }
     
     setIsSubmitting(true)
+    setErrors({})
     
-    // Simulate API call
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      console.log('Form submitted:', formData)
+      await saveEmergencyReport({
+        ...formData,
+        submittedBy: formData.aadhar,
+        reporterType: 'citizen'
+      })
       setSubmitSuccess(true)
       
       // Reset form after success
@@ -88,7 +90,9 @@ function EmergencyRequest() {
       }, 3000)
     } catch (error) {
       console.error('Error submitting form:', error)
-      setErrors({ submit: 'Failed to submit request. Please try again.' })
+      setErrors({
+        submit: 'Failed to reach the report server. Please check your connection and try again.'
+      })
     } finally {
       setIsSubmitting(false)
     }

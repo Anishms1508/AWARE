@@ -1,6 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Navbar from './Navbar'
 import './Dashboard.css'
+import {
+  DEFAULT_MAP_CENTER,
+  GOOGLE_MAPS_API_KEY,
+  WATER_HIGHLIGHT_STYLES
+} from '../constants/maps'
+import { saveAshaWorkerReport } from '../services/reportService'
 
 function Dashboard() {
   const [predictionData, setPredictionData] = useState({
@@ -17,6 +23,451 @@ function Dashboard() {
   })
   const [predictionResult, setPredictionResult] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [mapStatus, setMapStatus] = useState('Loading map...')
+  const [isAshaModalOpen, setIsAshaModalOpen] = useState(false)
+  const [isAshaAuthenticated, setIsAshaAuthenticated] = useState(false)
+  const [ashaLogin, setAshaLogin] = useState({ username: '', password: '' })
+  const [isSavingReport, setIsSavingReport] = useState(false)
+  const [ashaStatusMessage, setAshaStatusMessage] = useState('')
+  const [ashaFormData, setAshaFormData] = useState({
+    locationLabel: '',
+    latitude: '',
+    longitude: '',
+    symptoms: [],
+    peopleCount: '1',
+    waterMuddy: 'unknown',
+    waterSource: 'river',
+    flooding: 'no',
+    illnessStart: '',
+    notes: '',
+    imageFileName: ''
+  })
+  const [ashaReports, setAshaReports] = useState(() => {
+    try {
+      const stored = localStorage.getItem('ashaReports')
+      return stored ? JSON.parse(stored) : []
+    } catch (error) {
+      console.warn('Unable to parse stored ASHA reports', error)
+      return []
+    }
+  })
+
+  const mapContainerRef = useRef(null)
+  const mapInstanceRef = useRef(null)
+  const userMarkerRef = useRef(null)
+  const accuracyCircleRef = useRef(null)
+  const waterMarkersRef = useRef([])
+  const geoWatchIdRef = useRef(null)
+  const ASHA_CREDENTIALS = useMemo(
+    () => ({ username: 'user', password: '12345' }),
+    []
+  )
+
+  useEffect(() => {
+    localStorage.setItem('ashaReports', JSON.stringify(ashaReports))
+  }, [ashaReports])
+
+  useEffect(() => {
+    if (isAshaModalOpen && isAshaAuthenticated && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setAshaFormData(prev => ({
+            ...prev,
+            latitude: pos.coords.latitude.toFixed(5),
+            longitude: pos.coords.longitude.toFixed(5),
+            locationLabel: prev.locationLabel || 'Auto-detected location'
+          }))
+        },
+        () => {
+          setAshaStatusMessage('Auto location failed. Please enter manually.')
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 20000,
+          maximumAge: 60000
+        }
+      )
+    }
+  }, [isAshaModalOpen, isAshaAuthenticated])
+
+  const clearWaterMarkers = () => {
+    waterMarkersRef.current.forEach(marker => marker.setMap(null))
+    waterMarkersRef.current = []
+  }
+
+  const handleAshaLoginSubmit = (e) => {
+    e.preventDefault()
+    if (
+      ashaLogin.username.trim() === ASHA_CREDENTIALS.username &&
+      ashaLogin.password === ASHA_CREDENTIALS.password
+    ) {
+      setIsAshaAuthenticated(true)
+      setAshaStatusMessage('Access granted. You can submit a report now.')
+    } else {
+      setAshaStatusMessage('Invalid credentials. Please try again.')
+    }
+  }
+
+  const closeAshaModal = () => {
+    setIsAshaModalOpen(false)
+    setIsAshaAuthenticated(false)
+    setAshaLogin({ username: '', password: '' })
+    setAshaStatusMessage('')
+    setAshaFormData(prev => ({
+      ...prev,
+      notes: '',
+      imageFileName: ''
+    }))
+  }
+
+  const toggleSymptom = (symptom) => {
+    setAshaFormData(prev => {
+      const exists = prev.symptoms.includes(symptom)
+      return {
+        ...prev,
+        symptoms: exists
+          ? prev.symptoms.filter(item => item !== symptom)
+          : [...prev.symptoms, symptom]
+      }
+    })
+  }
+
+  const handleAshaFormChange = (e) => {
+    const { name, value, files } = e.target
+    if (files && files[0]) {
+      setAshaFormData(prev => ({
+        ...prev,
+        imageFileName: files[0].name
+      }))
+    } else {
+      setAshaFormData(prev => ({
+        ...prev,
+        [name]: value
+      }))
+    }
+  }
+
+  const handleAshaReportSubmit = async (e) => {
+    e.preventDefault()
+    setIsSavingReport(true)
+    const isOnline = navigator.onLine
+    const timestamp = new Date().toISOString()
+
+    const baseReport = {
+      id: `${Date.now()}`,
+      ...ashaFormData,
+      symptoms: ashaFormData.symptoms.length
+        ? ashaFormData.symptoms
+        : ['No symptoms selected'],
+      createdAt: timestamp,
+      submittedBy: ASHA_CREDENTIALS.username
+    }
+
+    try {
+      if (isOnline) {
+        await saveAshaWorkerReport(baseReport)
+        setAshaStatusMessage('Report submitted and synced successfully.')
+        setAshaReports(prev => [{ ...baseReport, status: 'Synced' }, ...prev].slice(0, 20))
+      } else {
+        setAshaStatusMessage('Report saved offline. It will sync once online.')
+        setAshaReports(prev => [{ ...baseReport, status: 'Pending sync' }, ...prev].slice(0, 20))
+      }
+    } catch (error) {
+      console.error('Unable to save ASHA report to Firebase', error)
+      setAshaStatusMessage('Could not reach Firebase. Report stored locally.')
+      setAshaReports(prev => [{ ...baseReport, status: 'Failed' }, ...prev].slice(0, 20))
+    } finally {
+      setIsSavingReport(false)
+    }
+  }
+
+  const highlightNearbyWaterBodies = (center) => {
+    if (!window.google || !window.google.maps || !window.google.maps.places || !mapInstanceRef.current) {
+      return
+    }
+
+    clearWaterMarkers()
+    const service = new window.google.maps.places.PlacesService(mapInstanceRef.current)
+
+    service.nearbySearch(
+      {
+        location: center,
+        radius: 10000,
+        type: ['natural_feature'],
+        keyword: 'river lake water'
+      },
+      (results, status) => {
+        if (status !== window.google.maps.places.PlacesServiceStatus.OK || !results) {
+          console.warn('Google Places water lookup failed:', status)
+          return
+        }
+
+        results.slice(0, 15).forEach(place => {
+          if (!place.geometry || !place.geometry.location) return
+          const marker = new window.google.maps.Marker({
+            position: place.geometry.location,
+            map: mapInstanceRef.current,
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              scale: 6,
+              fillColor: '#38bdf8',
+              fillOpacity: 0.95,
+              strokeColor: '#0f172a',
+              strokeWeight: 1
+            },
+            title: place.name
+          })
+
+          const infoWindow = new window.google.maps.InfoWindow({
+            content: `<div class="water-infowindow">${place.name || 'Water body'}</div>`
+          })
+
+          marker.addListener('click', () => {
+            infoWindow.open({
+              anchor: marker,
+              map: mapInstanceRef.current
+            })
+          })
+
+          waterMarkersRef.current.push(marker)
+        })
+
+      }
+    )
+  }
+
+  const showDefaultWaterBodies = (reason) => {
+    if (!mapInstanceRef.current || !window.google?.maps) return
+    const fallbackLatLng = new window.google.maps.LatLng(
+      DEFAULT_MAP_CENTER.lat,
+      DEFAULT_MAP_CENTER.lng
+    )
+    mapInstanceRef.current.setCenter(fallbackLatLng)
+    mapInstanceRef.current.setZoom(10)
+    const fallbackMessage = reason
+      ? `${reason} Can't find locations; showing India map.`
+      : "Can't find locations; showing India map."
+    setMapStatus(fallbackMessage)
+    highlightNearbyWaterBodies(DEFAULT_MAP_CENTER)
+  }
+
+  const logPositionDetails = (position) => {
+    console.group('Geolocation Debug')
+    console.log('Full position object:', position)
+    console.log('Latitude:', position.coords.latitude)
+    console.log('Longitude:', position.coords.longitude)
+    console.log('Accuracy (meters):', position.coords.accuracy)
+    console.log('Altitude:', position.coords.altitude)
+    console.log('Altitude accuracy:', position.coords.altitudeAccuracy)
+    console.log('Heading:', position.coords.heading)
+    console.log('Speed:', position.coords.speed)
+    console.log('Timestamp:', new Date(position.timestamp).toString())
+    console.groupEnd()
+  }
+
+  const updateUserMarker = (coords, accuracy) => {
+    if (!mapInstanceRef.current || !window.google?.maps) return
+
+    const position = new window.google.maps.LatLng(coords.lat, coords.lng)
+
+    if (userMarkerRef.current) {
+      userMarkerRef.current.setPosition(position)
+    } else {
+      userMarkerRef.current = new window.google.maps.Marker({
+        position,
+        map: mapInstanceRef.current,
+        title: 'You are here',
+        label: {
+          text: 'You',
+          color: '#0f172a',
+          fontSize: '12px',
+          fontWeight: '600'
+        }
+      })
+    }
+
+    if (!accuracyCircleRef.current) {
+      accuracyCircleRef.current = new window.google.maps.Circle({
+        strokeColor: '#38bdf8',
+        strokeOpacity: 0.8,
+        strokeWeight: 1,
+        fillColor: '#38bdf8',
+        fillOpacity: 0.25,
+        map: mapInstanceRef.current,
+        center: position,
+        radius: Math.max(accuracy, 20)
+      })
+    } else {
+      accuracyCircleRef.current.setCenter(position)
+      accuracyCircleRef.current.setRadius(Math.max(accuracy, 20))
+    }
+  }
+
+  const clearGeolocationWatch = () => {
+    if (geoWatchIdRef.current !== null && navigator.geolocation) {
+      navigator.geolocation.clearWatch(geoWatchIdRef.current)
+      geoWatchIdRef.current = null
+    }
+  }
+
+  useEffect(() => {
+    const mountMap = () => {
+      if (!window.google || mapInstanceRef.current || !mapContainerRef.current) {
+        return
+      }
+
+      // Initialize map in the dashboard.
+      mapInstanceRef.current = new window.google.maps.Map(mapContainerRef.current, {
+        center: DEFAULT_MAP_CENTER,
+        zoom: 12,
+        styles: WATER_HIGHLIGHT_STYLES,
+        streetViewControl: false,
+        mapTypeControl: false,
+        fullscreenControl: true
+      })
+
+      const setStatusForCoords = (coords, accuracy) => {
+        const accuracyText = accuracy
+          ? `Accuracy ±${Math.round(accuracy)}m`
+          : 'Accuracy unknown'
+        setMapStatus(
+          `Precise location locked at (${coords.lat.toFixed(
+            4
+          )}, ${coords.lng.toFixed(4)}). ${accuracyText}.`
+        )
+      }
+
+      const handleAccuratePosition = (coords, accuracy) => {
+        const latLng = new window.google.maps.LatLng(coords.lat, coords.lng)
+        mapInstanceRef.current.setCenter(latLng)
+        mapInstanceRef.current.setZoom(15)
+        updateUserMarker(coords, accuracy || 30)
+        setStatusForCoords(coords, accuracy)
+        highlightNearbyWaterBodies(coords)
+      }
+
+      const isSecure =
+        window.isSecureContext || window.location.hostname === 'localhost'
+
+      if (!isSecure) {
+        console.error(
+          'Geolocation requires a secure context (https or localhost).'
+        )
+        showDefaultWaterBodies(
+          'Browser blocked geolocation on insecure connection.'
+        )
+        return
+      }
+
+      // Prompt for current location via the Geolocation API.
+      if ('geolocation' in navigator) {
+        setMapStatus('Fetching your location…')
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            logPositionDetails(position)
+            const coords = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            }
+            const accuracy = position.coords.accuracy
+
+            handleAccuratePosition(coords, accuracy)
+
+            // If browser reports low confidence, keep watching until we get ±40m or better
+            if ((accuracy && accuracy > 40) || !accuracy) {
+              setMapStatus(
+                `Improving precision… current accuracy ±${Math.round(
+                  accuracy || 100
+                )}m`
+              )
+              geoWatchIdRef.current = navigator.geolocation.watchPosition(
+                (watchPosition) => {
+                  logPositionDetails(watchPosition)
+                  const improvedCoords = {
+                    lat: watchPosition.coords.latitude,
+                    lng: watchPosition.coords.longitude
+                  }
+                  const improvedAccuracy = watchPosition.coords.accuracy
+
+                  handleAccuratePosition(improvedCoords, improvedAccuracy)
+
+                  if (improvedAccuracy && improvedAccuracy <= 40) {
+                    clearGeolocationWatch()
+                  }
+                },
+                (watchError) => {
+                  console.warn('watchPosition failed', watchError)
+                  clearGeolocationWatch()
+                },
+                {
+                  enableHighAccuracy: true,
+                  timeout: 15000,
+                  maximumAge: 1000
+                }
+              )
+            }
+          },
+          (error) => {
+            console.error('Geolocation error:', error)
+            let reason = 'Unable to access your location.'
+            if (error?.code === error.PERMISSION_DENIED) {
+              reason = 'Location permission denied.'
+            } else if (error?.code === error.POSITION_UNAVAILABLE) {
+              reason = 'Location unavailable from your device.'
+            } else if (error?.code === error.TIMEOUT) {
+              reason = 'Locating timed out.'
+            }
+            showDefaultWaterBodies(
+              reason || "Can't find locations; showing India map."
+            )
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 90000,
+            maximumAge: 120000
+          }
+        )
+      } else {
+        alert('Geolocation not supported in this browser.')
+        showDefaultWaterBodies('Geolocation not supported.')
+      }
+    }
+
+    // Expose initMap globally so Google Maps can call it.
+    window.initMap = mountMap
+
+    // Re-use the script tag if it already exists.
+    const existingScript = document.querySelector('script[data-google-maps]')
+    if (window.google && window.google.maps) {
+      mountMap()
+    } else if (!existingScript) {
+      if (GOOGLE_MAPS_API_KEY === 'YOUR_API_KEY_HERE') {
+        console.warn('Add your real Google Maps API key to VITE_GOOGLE_MAPS_API_KEY')
+      }
+
+      const script = document.createElement('script')
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&callback=initMap&libraries=places`
+      script.async = true
+      script.defer = true
+      script.dataset.googleMaps = 'true'
+      script.onerror = () => {
+        setMapStatus('Unable to load Google Maps. Please verify your API key.')
+      }
+      document.head.appendChild(script)
+    }
+
+    return () => {
+      delete window.initMap
+      clearWaterMarkers()
+          clearGeolocationWatch()
+          if (accuracyCircleRef.current) {
+            accuracyCircleRef.current.setMap(null)
+          }
+          if (userMarkerRef.current) {
+            userMarkerRef.current.setMap(null)
+          }
+    }
+      }, [])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -194,6 +645,28 @@ function Dashboard() {
 
       <main className="dashboard-main">
         <div className="dashboard-grid">
+          <div className="dashboard-card map-card">
+            <h2 className="card-title">Check Location</h2>
+            <p className="map-description">
+              Allow location access to find nearby rivers and water bodies.
+            </p>
+            <div
+              id="map"
+              ref={mapContainerRef}
+              className="map-container"
+              role="presentation"
+              aria-label="Google Map showing your location and nearby water"
+            ></div>
+            {mapStatus && <p className="map-status">{mapStatus}</p>}
+            <button
+              type="button"
+              className="asha-button"
+              onClick={() => setIsAshaModalOpen(true)}
+            >
+              ASHA Worker Report
+            </button>
+          </div>
+
           {/* Prediction Form */}
           <div className="dashboard-card prediction-card">
             <h2 className="card-title">Disease Risk Prediction</h2>
@@ -500,6 +973,228 @@ function Dashboard() {
           </div>
         </div>
       </main>
+      {isAshaModalOpen && (
+        <div className="asha-modal-backdrop" role="dialog" aria-modal="true">
+          <div className="asha-modal">
+            <button className="modal-close" onClick={closeAshaModal} aria-label="Close">
+              ×
+            </button>
+            <h2>ASHA Worker Quick Report</h2>
+            {!isAshaAuthenticated ? (
+              <form className="asha-login" onSubmit={handleAshaLoginSubmit}>
+                <label>
+                  Username
+                  <input
+                    type="text"
+                    name="username"
+                    value={ashaLogin.username}
+                    onChange={e =>
+                      setAshaLogin(prev => ({ ...prev, username: e.target.value }))
+                    }
+                    required
+                  />
+                </label>
+                <label>
+                  Password
+                  <input
+                    type="password"
+                    name="password"
+                    value={ashaLogin.password}
+                    onChange={e =>
+                      setAshaLogin(prev => ({ ...prev, password: e.target.value }))
+                    }
+                    required
+                  />
+                </label>
+                <button type="submit" className="asha-primary-btn">
+                  Verify
+                </button>
+                {ashaStatusMessage && (
+                  <p className="asha-status">{ashaStatusMessage}</p>
+                )}
+              </form>
+            ) : (
+              <>
+                {!navigator.onLine && (
+                  <div className="offline-banner">Report saved offline until connection returns.</div>
+                )}
+                <form className="asha-form" onSubmit={handleAshaReportSubmit}>
+                  <div className="form-row">
+                    <label>
+                      Auto location
+                      <input
+                        type="text"
+                        name="locationLabel"
+                        value={ashaFormData.locationLabel}
+                        onChange={handleAshaFormChange}
+                        placeholder="Auto-detected location"
+                      />
+                    </label>
+                  </div>
+                  <div className="form-row">
+                    <label>
+                      Latitude
+                      <input
+                        type="text"
+                        name="latitude"
+                        value={ashaFormData.latitude}
+                        onChange={handleAshaFormChange}
+                        placeholder="28.6139"
+                      />
+                    </label>
+                    <label>
+                      Longitude
+                      <input
+                        type="text"
+                        name="longitude"
+                        value={ashaFormData.longitude}
+                        onChange={handleAshaFormChange}
+                        placeholder="77.2090"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="symptom-section">
+                    <span>Symptoms observed</span>
+                    <div className="symptom-options">
+                      {['Diarrhoea', 'Vomiting', 'Fever'].map(symptom => (
+                        <label key={symptom} className="checkbox-option">
+                          <input
+                            type="checkbox"
+                            checked={ashaFormData.symptoms.includes(symptom)}
+                            onChange={() => toggleSymptom(symptom)}
+                          />
+                          {symptom}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <label>
+                    Number of people affected
+                    <input
+                      type="number"
+                      name="peopleCount"
+                      min="1"
+                      value={ashaFormData.peopleCount}
+                      onChange={handleAshaFormChange}
+                    />
+                  </label>
+
+                  <div className="form-row">
+                    <label>
+                      Water looks muddy?
+                      <select
+                        name="waterMuddy"
+                        value={ashaFormData.waterMuddy}
+                        onChange={handleAshaFormChange}
+                      >
+                        <option value="unknown">Unknown</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                      </select>
+                    </label>
+                    <label>
+                      Water source
+                      <select
+                        name="waterSource"
+                        value={ashaFormData.waterSource}
+                        onChange={handleAshaFormChange}
+                      >
+                        <option value="river">River</option>
+                        <option value="well">Well</option>
+                        <option value="handpump">Handpump</option>
+                        <option value="tap">Tap</option>
+                        <option value="lake">Lake</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <label>
+                    Flooding recently?
+                    <select
+                      name="flooding"
+                      value={ashaFormData.flooding}
+                      onChange={handleAshaFormChange}
+                    >
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
+                      <option value="unsure">Unsure</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    Date illness started
+                    <input
+                      type="date"
+                      name="illnessStart"
+                      value={ashaFormData.illnessStart}
+                      onChange={handleAshaFormChange}
+                    />
+                  </label>
+
+                  <label>
+                    Notes / observations
+                    <textarea
+                      name="notes"
+                      value={ashaFormData.notes}
+                      onChange={handleAshaFormChange}
+                      placeholder="Add any quick observations..."
+                    ></textarea>
+                  </label>
+
+                  <label>
+                    Optional photo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAshaFormChange}
+                    />
+                    {ashaFormData.imageFileName && (
+                      <span className="file-name">{ashaFormData.imageFileName}</span>
+                    )}
+                  </label>
+
+                  <button
+                    type="submit"
+                    className="asha-primary-btn"
+                    disabled={isSavingReport}
+                  >
+                    {isSavingReport ? 'Saving...' : 'Submit report'}
+                  </button>
+                  {ashaStatusMessage && (
+                    <p className="asha-status">{ashaStatusMessage}</p>
+                  )}
+                </form>
+
+                <div className="asha-history">
+                  <h3>Past reports</h3>
+                  {ashaReports.length === 0 ? (
+                    <p>No reports yet.</p>
+                  ) : (
+                    <ul>
+                      {ashaReports.map(report => (
+                        <li key={report.id}>
+                          <div>
+                            <strong>{new Date(report.createdAt).toLocaleString()}</strong>
+                            <span className={`status-badge status-${report.status === 'Synced' ? 'synced' : 'pending'}`}>
+                              {report.status}
+                            </span>
+                          </div>
+                          <p>
+                            {report.peopleCount} people • Symptoms:{' '}
+                            {report.symptoms.join(', ')}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
       </div>
     </>
   )

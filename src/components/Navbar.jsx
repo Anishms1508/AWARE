@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { SignedIn, SignedOut, useUser, UserButton, SignInButton } from '@clerk/clerk-react'
 import './Navbar.css'
+import { logVisitorLogin } from '../services/reportService'
 
 function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -13,6 +14,7 @@ function Navbar() {
   const menuItemsRef = useRef([])
   const { user } = useUser()
   const userButtonRef = useRef(null)
+  const loggedVisitorsRef = useRef(new Set())
 
   const handleUserButtonClick = (e) => {
     // Prevent double-clicking if clicking directly on UserButton
@@ -60,6 +62,47 @@ function Navbar() {
   }
 
   const menuItems = getMenuItems()
+
+  useEffect(() => {
+    const recordLogin = async () => {
+      if (!user) return
+
+      const email =
+        user?.primaryEmailAddress?.emailAddress ||
+        user?.emailAddresses?.[0]?.emailAddress ||
+        ''
+      const provider =
+        user?.externalAccounts?.[0]?.provider ||
+        (email.toLowerCase().includes('gmail') ? 'google' : 'clerk')
+      const isGoogleLogin =
+        provider === 'google' || email.toLowerCase().endsWith('@gmail.com')
+
+      if (!isGoogleLogin) return
+      if (loggedVisitorsRef.current.has(user.id)) return
+
+      loggedVisitorsRef.current.add(user.id)
+      try {
+        await logVisitorLogin({
+          userId: user.id,
+          email,
+          fullName: user.fullName || [user.firstName, user.lastName].filter(Boolean).join(' '),
+          provider,
+          clerkUsername: user.username || null,
+          lastSignInAt:
+            (user.lastSignInAt instanceof Date
+              ? user.lastSignInAt
+              : user.lastSignInAt
+              ? new Date(user.lastSignInAt)
+              : new Date()
+            ).toISOString()
+        })
+      } catch (error) {
+        console.error('Failed to log visitor login', error)
+      }
+    }
+
+    recordLogin()
+  }, [user])
 
   // Close dropdown when clicking outside
   useEffect(() => {
