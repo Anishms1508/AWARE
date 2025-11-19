@@ -2,6 +2,7 @@
 """
 Standalone script to run the live graph visualization.
 This can be run independently while synthetic_sensors.py is running.
+Saves the graph as a PNG image for web display.
 """
 
 import sys
@@ -14,12 +15,15 @@ sys.path.insert(0, str(Path(__file__).parent))
 # Since we can't directly import from notebook, we'll define it here
 import pandas as pd
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 from datetime import datetime
+import time
 
 # Path to sensor data file (created by synthetic_sensors.py)
 SENSOR_DATA_FILE = Path(__file__).parent / "sensor_live_data.csv"
+GRAPH_IMAGE_FILE = Path(__file__).parent / "live_graph.png"
 
 def create_live_graph(max_points=50, update_interval=1000):
     """
@@ -119,24 +123,34 @@ def create_live_graph(max_points=50, update_interval=1000):
             print(f"Error reading sensor data: {e}")
             return None
     
-    def update_graph(frame):
-        """Animation update function"""
+    def update_graph():
+        """Update graph with latest data"""
         # Read latest sensor data
         data = read_sensor_data()
         
         if data is None:
-            return line1, line2, line3, line4
+            # Still save the current state even if no new data
+            try:
+                fig.savefig(GRAPH_IMAGE_FILE, dpi=100, bbox_inches='tight', facecolor='white')
+            except:
+                pass
+            return
         
-        # Add new data point
-        timestamps.append(data['timestamp'])
-        readings_data['Temp'].append(data['Temp'])
-        readings_data['DO'].append(data['DO'])
-        readings_data['pH'].append(data['pH'])
-        
-        # Convert risk to numeric
-        risk_num = risk_to_num.get(data['Risk'], 1)
-        readings_data['Risk_Score'].append(risk_num)
-        risk_labels.append(data['Risk'])
+        # Check if this is a new data point (avoid duplicates)
+        if len(timestamps) > 0 and timestamps[-1] == data['timestamp']:
+            # Same timestamp, just update the existing graph
+            pass
+        else:
+            # Add new data point
+            timestamps.append(data['timestamp'])
+            readings_data['Temp'].append(data['Temp'])
+            readings_data['DO'].append(data['DO'])
+            readings_data['pH'].append(data['pH'])
+            
+            # Convert risk to numeric
+            risk_num = risk_to_num.get(data['Risk'], 1)
+            readings_data['Risk_Score'].append(risk_num)
+            risk_labels.append(data['Risk'])
         
         # Keep only last max_points
         if len(timestamps) > max_points:
@@ -173,17 +187,39 @@ def create_live_graph(max_points=50, update_interval=1000):
                 ax3.set_xlim(0, 10)
                 ax4.set_xlim(0, 10)
         
-        return line1, line2, line3, line4
+        # Save the graph as PNG image
+        try:
+            fig.savefig(GRAPH_IMAGE_FILE, dpi=100, bbox_inches='tight', facecolor='white')
+        except Exception as e:
+            print(f"Error saving graph image: {e}")
     
-    # Create animation
-    ani = animation.FuncAnimation(fig, update_graph, interval=update_interval, blit=True, cache_frame_data=False)
-    
-    print("📊 Live graph started. Make sure synthetic_sensors.py is running with 'on' command.")
+    print("📊 Live graph started. Make sure synthetic_sensors.py is running.")
     print(f"   Reading from: {SENSOR_DATA_FILE.absolute()}")
-    print("   Close the graph window to stop.")
+    print(f"   Saving graph to: {GRAPH_IMAGE_FILE.absolute()}")
+    print("   Graph will update every", update_interval, "ms")
+    print("   Press Ctrl+C to stop.")
     
-    plt.show()
-    return ani
+    # Save initial empty graph
+    try:
+        fig.savefig(GRAPH_IMAGE_FILE, dpi=100, bbox_inches='tight', facecolor='white')
+    except Exception as e:
+        print(f"Error saving initial graph: {e}")
+    
+    # Run the update loop manually (no animation framework needed)
+    try:
+        while True:
+            update_graph()
+            time.sleep(update_interval / 1000.0)
+    except KeyboardInterrupt:
+        print("\n🛑 Stopping live graph...")
+        plt.close(fig)
+    except Exception as e:
+        print(f"Error in graph loop: {e}")
+        import traceback
+        traceback.print_exc()
+        plt.close(fig)
+    
+    return None
 
 if __name__ == "__main__":
     import argparse

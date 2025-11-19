@@ -3,10 +3,13 @@ FastAPI backend for AWARE ML Model Prediction
 """
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 import pandas as pd
 import joblib
 import os
+import subprocess
+import threading
 from pathlib import Path
 from typing import Optional
 
@@ -22,8 +25,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load model on startup
-MODEL_PATH = Path(__file__).parent.parent / "extract" / "rf_water_model.joblib"
+# Load model on startup (for ML prediction API)
+ML_MODEL_PATH = Path(__file__).parent.parent / "extract" / "rf_water_model.joblib"
 model_data = None
 model = None
 imputer = None
@@ -36,11 +39,11 @@ async def load_model():
     """Load the ML model, imputer, and label encoder on startup"""
     global model_data, model, imputer, label_encoder, features, uses_pipeline
     
-    if not MODEL_PATH.exists():
-        raise FileNotFoundError(f"Model file not found at {MODEL_PATH}. Please train the model first.")
+    if not ML_MODEL_PATH.exists():
+        raise FileNotFoundError(f"Model file not found at {ML_MODEL_PATH}. Please train the model first.")
     
     try:
-        model_data = joblib.load(MODEL_PATH)
+        model_data = joblib.load(ML_MODEL_PATH)
         
         if isinstance(model_data, dict):
             # Newer artifact format (recommended)
@@ -70,7 +73,7 @@ async def load_model():
         if label_encoder is None or features is None:
             raise ValueError("Model artifact missing required keys: 'label_encoder' and/or 'features'.")
 
-        print(f"✅ Model loaded successfully from {MODEL_PATH}")
+        print(f"✅ Model loaded successfully from {ML_MODEL_PATH}")
         print(f"   Features: {features}")
         print(f"   Classes: {label_encoder.classes_}")
     except Exception as e:
@@ -242,6 +245,200 @@ async def predict_risk(input_data: WaterQualityInput):
             status_code=500,
             detail=f"Prediction error: {str(e)}"
         )
+
+# Sensor and graph control state
+synthetic_sensor = None
+sensor_running = False
+graph_process = None
+graph_running = False
+
+# Get the project root directory (parent of backend)
+BACKEND_DIR = Path(__file__).parent.absolute()
+PROJECT_ROOT = BACKEND_DIR.parent
+EXTRACT_DIR = PROJECT_ROOT / "extract"
+SENSOR_DATA_FILE = EXTRACT_DIR / "sensor_live_data.csv"
+GRAPH_SCRIPT = EXTRACT_DIR / "run_live_graph.py"
+
+# Print paths for debugging
+print(f"Backend directory: {BACKEND_DIR}")
+print(f"Project root: {PROJECT_ROOT}")
+print(f"Extract directory: {EXTRACT_DIR}")
+print(f"Extract directory exists: {EXTRACT_DIR.exists()}")
+
+# Import SyntheticSensor class directly
+import sys
+sys.path.insert(0, str(EXTRACT_DIR))
+SENSOR_MODEL_PATH = EXTRACT_DIR / "rf_forecast_model.joblib"
+DATA_PATH = EXTRACT_DIR / "water_dataX.csv"
+SyntheticSensor = None
+
+try:
+    from synthetic_sensors import SyntheticSensor
+    print(f"Sensor model path: {SENSOR_MODEL_PATH}")
+    print(f"Sensor model exists: {SENSOR_MODEL_PATH.exists()}")
+    print(f"Data path: {DATA_PATH}")
+    print(f"Data exists: {DATA_PATH.exists()}")
+except ImportError as e:
+    print(f"Warning: Could not import SyntheticSensor: {e}")
+    import traceback
+    traceback.print_exc()
+    SyntheticSensor = None
+
+@app.post("/api/sensors/start")
+async def start_sensors():
+    """Start synthetic sensors"""
+    global synthetic_sensor, sensor_running
+    
+    # Check if already running
+    if sensor_running and synthetic_sensor is not None and synthetic_sensor.is_running:
+        return {"status": "already_running", "message": "Sensors are already running"}
+    
+    if SyntheticSensor is None:
+        raise HTTPException(status_code=503, detail="SyntheticSensor class not available. Check backend logs.")
+    
+    # Validate required files exist with better error messages
+    if not SENSOR_MODEL_PATH.exists():
+        abs_path = SENSOR_MODEL_PATH.absolute()
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Model file not found at: {abs_path}. Please ensure rf_forecast_model.joblib exists in the extract directory."
+        )
+    
+    # Check data file (optional - sensor can use defaults)
+    if not DATA_PATH.exists():
+        print(f"⚠️  Warning: Data file not found at {DATA_PATH.absolute()}. Sensor will use default value ranges.")
+    
+    try:
+        # Create and start sensor instance
+        synthetic_sensor = SyntheticSensor(SENSOR_MODEL_PATH, DATA_PATH, SENSOR_DATA_FILE)
+        synthetic_sensor.start()
+        
+        # Verify it actually started
+        if not synthetic_sensor.is_running:
+            raise Exception("Sensor failed to start - is_running is False")
+        
+        sensor_running = True
+        
+        return {"status": "started", "message": "Synthetic sensors started successfully"}
+    except FileNotFoundError as e:
+        sensor_running = False
+        synthetic_sensor = None
+        error_msg = f"Required file not found: {str(e)}"
+        print(f"Error starting sensors: {error_msg}")
+        print(f"  Model path: {SENSOR_MODEL_PATH.absolute()}")
+        print(f"  Data path: {DATA_PATH.absolute()}")
+        print(f"  Sensor data path: {SENSOR_DATA_FILE.absolute()}")
+        raise HTTPException(status_code=404, detail=error_msg)
+    except Exception as e:
+        sensor_running = False
+        synthetic_sensor = None
+        error_msg = str(e)
+        print(f"Error starting sensors: {error_msg}")
+        print(f"  Model path: {SENSOR_MODEL_PATH.absolute()}")
+        print(f"  Data path: {DATA_PATH.absolute()}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to start sensors: {error_msg}")
+
+@app.post("/api/sensors/stop")
+async def stop_sensors():
+    """Stop synthetic sensors"""
+    global synthetic_sensor, sensor_running
+    
+    if not sensor_running:
+        return {"status": "not_running", "message": "Sensors are not running"}
+    
+    try:
+        if synthetic_sensor:
+            synthetic_sensor.stop()
+        sensor_running = False
+        synthetic_sensor = None
+        return {"status": "stopped", "message": "Synthetic sensors stopped successfully"}
+    except Exception as e:
+        sensor_running = False
+        synthetic_sensor = None
+        error_msg = str(e)
+        print(f"Error stopping sensors: {error_msg}")
+        raise HTTPException(status_code=500, detail=f"Failed to stop sensors: {error_msg}")
+
+@app.get("/api/sensors/status")
+async def get_sensor_status():
+    """Get sensor status"""
+    global sensor_running, synthetic_sensor
+    is_running = sensor_running and synthetic_sensor is not None and synthetic_sensor.is_running
+    return {"running": is_running}
+
+@app.post("/api/graph/start")
+async def start_live_graph():
+    """Start live graph visualization"""
+    global graph_process, graph_running
+    
+    if graph_running:
+        return {"status": "already_running", "message": "Live graph is already running"}
+    
+    try:
+        graph_process = subprocess.Popen(
+            ["python", str(GRAPH_SCRIPT)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            cwd=str(EXTRACT_DIR)
+        )
+        graph_running = True
+        return {"status": "started", "message": "Live graph started successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to start live graph: {str(e)}")
+
+@app.post("/api/graph/stop")
+async def stop_live_graph():
+    """Stop live graph visualization"""
+    global graph_process, graph_running
+    
+    if not graph_running:
+        return {"status": "not_running", "message": "Live graph is not running"}
+    
+    try:
+        if graph_process:
+            graph_process.terminate()
+            graph_process.wait(timeout=5)
+        graph_running = False
+        return {"status": "stopped", "message": "Live graph stopped successfully"}
+    except Exception as e:
+        graph_running = False
+        raise HTTPException(status_code=500, detail=f"Failed to stop live graph: {str(e)}")
+
+@app.get("/api/graph/status")
+async def get_graph_status():
+    """Get graph status"""
+    global graph_running
+    return {"running": graph_running}
+
+@app.get("/api/sensor-data")
+async def get_sensor_data():
+    """Get latest sensor data from CSV"""
+    try:
+        sensor_data_file = EXTRACT_DIR / "sensor_live_data.csv"
+        if not sensor_data_file.exists():
+            return {"data": [], "message": "No sensor data available yet"}
+        
+        df = pd.read_csv(sensor_data_file)
+        # Return last 50 readings
+        latest_data = df.tail(50).to_dict('records')
+        return {"data": latest_data, "count": len(latest_data)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read sensor data: {str(e)}")
+
+@app.get("/api/graph/image")
+async def get_graph_image():
+    """Get the live graph image"""
+    graph_image_file = EXTRACT_DIR / "live_graph.png"
+    if not graph_image_file.exists():
+        raise HTTPException(status_code=404, detail="Graph image not found. Make sure the live graph is running.")
+    return FileResponse(
+        graph_image_file,
+        media_type="image/png",
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+    )
 
 if __name__ == "__main__":
     import uvicorn
